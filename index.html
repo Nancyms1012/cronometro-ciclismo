@@ -48,6 +48,17 @@
                 </div>
                 <button id="btn-agregar-corredor" class="btn btn-agregar">+ Agregar</button>
             </div>
+
+            <!-- Importar desde archivo -->
+            <div class="importar-seccion">
+                <div class="importar-header">
+                    <button id="btn-importar" class="btn btn-importar" onclick="document.getElementById('archivo-csv').click()">Importar desde CSV / Excel</button>
+                    <button id="btn-descargar-plantilla" class="btn btn-plantilla" onclick="descargarPlantilla()">Descargar plantilla</button>
+                    <input type="file" id="archivo-csv" accept=".csv,.xls,.xlsx" style="display:none">
+                </div>
+                <p class="importar-ayuda">Formato del archivo: columnas <strong>Dorsal, Nombre, Equipo, Categoria</strong> (separadas por coma o punto y coma)</p>
+            </div>
+
             <div id="lista-corredores" class="lista-corredores">
                 <p class="placeholder-text">No hay corredores registrados</p>
             </div>

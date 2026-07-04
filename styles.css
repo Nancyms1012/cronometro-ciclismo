@@ -427,6 +427,143 @@ header h1 {
     }
 }
 
+/* Importar archivo */
+.importar-seccion {
+    margin-top: 15px;
+    padding: 15px;
+    background: #0d1b2a;
+    border-radius: 8px;
+    border: 1px dashed #0f3460;
+}
+
+.importar-header {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.btn-importar {
+    background: #8e44ad;
+    color: white;
+}
+
+.btn-importar:hover {
+    background: #9b59b6;
+}
+
+.btn-plantilla {
+    background: #2c3e50;
+    color: #eaeaea;
+    font-size: 0.85rem;
+    padding: 8px 15px;
+}
+
+.btn-plantilla:hover {
+    background: #34495e;
+}
+
+.importar-ayuda {
+    color: #888;
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.importar-ayuda strong {
+    color: #aaa;
+}
+
+/* Modal de previsualizacion */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 25px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #0f3460;
+}
+
+.modal-content h3 {
+    color: #e94560;
+    margin-bottom: 15px;
+}
+
+.modal-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 0.9rem;
+}
+
+.modal-tabla th {
+    background: #0f3460;
+    padding: 8px 10px;
+    text-align: left;
+    color: #eaeaea;
+}
+
+.modal-tabla td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #0f3460;
+    color: #ccc;
+}
+
+.modal-tabla tr:hover td {
+    background: #1a1a2e;
+}
+
+.modal-info {
+    color: #aaa;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+.modal-info span {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.modal-botones {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.btn-confirmar-import {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-confirmar-import:hover {
+    background: #2ecc71;
+}
+
+.btn-cancelar-import {
+    background: #7f8c8d;
+    color: white;
+}
+
+.btn-cancelar-import:hover {
+    background: #95a5a6;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     .form-inline {

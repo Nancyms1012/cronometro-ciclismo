@@ -355,6 +355,210 @@ function exportarCSV() {
     mostrarNotificacion('Resultados exportados a CSV', 'exito');
 }
 
+// --- Importar desde CSV/Excel ---
+const inputArchivoCSV = document.getElementById('archivo-csv');
+
+function descargarPlantilla() {
+    const plantilla = 'Dorsal,Nombre,Equipo,Categoria\n1,Juan Perez,Equipo Rojo,Elite\n2,Maria Garcia,Equipo Azul,Elite\n3,Carlos Lopez,Equipo Verde,Sub-23\n';
+    const blob = new Blob([plantilla], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'plantilla_corredores.csv';
+    link.click();
+    mostrarNotificacion('Plantilla descargada. Abrir con Excel y completar.', 'info');
+}
+
+function procesarArchivoCSV(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+
+    const extension = archivo.name.split('.').pop().toLowerCase();
+
+    if (extension === 'xlsx' || extension === 'xls') {
+        mostrarNotificacion('Para archivos Excel (.xlsx), primero guardalos como CSV desde Excel: Archivo > Guardar como > CSV', 'error');
+        inputArchivoCSV.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const contenido = e.target.result;
+        const corredoresImportados = parsearCSV(contenido);
+
+        if (corredoresImportados.length === 0) {
+            mostrarNotificacion('No se encontraron corredores en el archivo', 'error');
+            inputArchivoCSV.value = '';
+            return;
+        }
+
+        // Mostrar previsualizacion
+        mostrarPrevisualizacion(corredoresImportados);
+        inputArchivoCSV.value = '';
+    };
+    reader.readAsText(archivo, 'UTF-8');
+}
+
+function parsearCSV(texto) {
+    const lineas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
+
+    if (lineas.length < 2) return [];
+
+    // Detectar separador (coma, punto y coma, o tabulador)
+    const primeraLinea = lineas[0];
+    let separador = ',';
+    if (primeraLinea.includes(';')) separador = ';';
+    else if (primeraLinea.includes('\t')) separador = '\t';
+
+    // Obtener encabezados
+    const encabezados = lineas[0].split(separador).map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+
+    // Buscar indices de columnas (flexible)
+    const iDorsal = encabezados.findIndex(h => h.includes('dorsal') || h.includes('numero') || h.includes('num') || h.includes('#'));
+    const iNombre = encabezados.findIndex(h => h.includes('nombre') || h.includes('corredor') || h.includes('name'));
+    const iEquipo = encabezados.findIndex(h => h.includes('equipo') || h.includes('team') || h.includes('club'));
+    const iCategoria = encabezados.findIndex(h => h.includes('categoria') || h.includes('category') || h.includes('cat'));
+
+    if (iDorsal === -1 || iNombre === -1) {
+        // Intentar sin encabezados: asumir Dorsal, Nombre, Equipo, Categoria
+        const resultados = [];
+        for (let i = 0; i < lineas.length; i++) {
+            const cols = parsearLineaCSV(lineas[i], separador);
+            if (cols.length >= 2 && !isNaN(cols[0])) {
+                resultados.push({
+                    dorsal: cols[0].trim(),
+                    nombre: cols[1].trim(),
+                    equipo: cols[2] ? cols[2].trim() : '',
+                    categoria: cols[3] ? cols[3].trim() : ''
+                });
+            }
+        }
+        return resultados;
+    }
+
+    // Parsear filas con encabezados detectados
+    const resultados = [];
+    for (let i = 1; i < lineas.length; i++) {
+        const cols = parsearLineaCSV(lineas[i], separador);
+        if (cols.length < 2) continue;
+
+        const dorsal = cols[iDorsal] ? cols[iDorsal].trim() : '';
+        const nombre = cols[iNombre] ? cols[iNombre].trim() : '';
+
+        if (!dorsal || !nombre) continue;
+
+        resultados.push({
+            dorsal,
+            nombre,
+            equipo: iEquipo !== -1 && cols[iEquipo] ? cols[iEquipo].trim() : '',
+            categoria: iCategoria !== -1 && cols[iCategoria] ? cols[iCategoria].trim() : ''
+        });
+    }
+
+    return resultados;
+}
+
+function parsearLineaCSV(linea, separador) {
+    const resultado = [];
+    let actual = '';
+    let dentroComillas = false;
+
+    for (let i = 0; i < linea.length; i++) {
+        const char = linea[i];
+
+        if (char === '"' || char === "'") {
+            dentroComillas = !dentroComillas;
+        } else if (char === separador && !dentroComillas) {
+            resultado.push(actual.trim());
+            actual = '';
+        } else {
+            actual += char;
+        }
+    }
+    resultado.push(actual.trim());
+    return resultado;
+}
+
+function mostrarPrevisualizacion(corredoresImportados) {
+    // Detectar categorias unicas
+    const categorias = [...new Set(corredoresImportados.map(c => c.categoria).filter(c => c))];
+
+    let tablaHTML = '';
+    corredoresImportados.forEach(c => {
+        tablaHTML += `<tr><td>${c.dorsal}</td><td>${c.nombre}</td><td>${c.equipo || '-'}</td><td>${c.categoria || '-'}</td></tr>`;
+    });
+
+    const categoriasTexto = categorias.length > 0
+        ? `Categorias detectadas: <span>${categorias.join(', ')}</span>`
+        : 'No se detectaron categorias en el archivo';
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'modal-importar';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Vista previa de importacion</h3>
+            <p class="modal-info">Se encontraron <span>${corredoresImportados.length}</span> corredores. ${categoriasTexto}</p>
+            <table class="modal-tabla">
+                <thead>
+                    <tr><th>Dorsal</th><th>Nombre</th><th>Equipo</th><th>Categoria</th></tr>
+                </thead>
+                <tbody>${tablaHTML}</tbody>
+            </table>
+            <div class="modal-botones">
+                <button class="btn btn-cancelar-import" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-confirmar-import" onclick="confirmarImportacion()">Importar ${corredoresImportados.length} corredores</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Guardar temporalmente
+    window._corredoresParaImportar = corredoresImportados;
+}
+
+function cerrarModal() {
+    const modal = document.getElementById('modal-importar');
+    if (modal) modal.remove();
+    window._corredoresParaImportar = null;
+}
+
+function confirmarImportacion() {
+    const nuevos = window._corredoresParaImportar;
+    if (!nuevos) return;
+
+    let agregados = 0;
+    let duplicados = 0;
+
+    // Si se detectaron categorias, actualizar el campo de categoria
+    const categorias = [...new Set(nuevos.map(c => c.categoria).filter(c => c))];
+    if (categorias.length > 0 && !inputCategoria.value) {
+        inputCategoria.value = categorias.join(', ');
+    }
+
+    nuevos.forEach(c => {
+        if (corredores.find(ex => ex.dorsal === c.dorsal)) {
+            duplicados++;
+        } else {
+            corredores.push({
+                dorsal: c.dorsal,
+                nombre: c.nombre,
+                equipo: c.equipo || ''
+            });
+            agregados++;
+        }
+    });
+
+    renderizarCorredores();
+    renderizarBotonesRapidos();
+    renderizarPendientes();
+    cerrarModal();
+
+    let mensaje = `${agregados} corredores importados correctamente`;
+    if (duplicados > 0) mensaje += ` (${duplicados} duplicados omitidos)`;
+    mostrarNotificacion(mensaje, 'exito');
+}
+
 // --- Event Listeners ---
 btnAgregarCorredor.addEventListener('click', agregarCorredor);
 btnIniciar.addEventListener('click', iniciarCronometro);
@@ -362,6 +566,7 @@ btnPausar.addEventListener('click', pausarCronometro);
 btnReiniciar.addEventListener('click', reiniciarCronometro);
 btnRegistrarLlegada.addEventListener('click', () => registrarLlegada());
 btnExportar.addEventListener('click', exportarCSV);
+inputArchivoCSV.addEventListener('change', procesarArchivoCSV);
 
 // Enter para agregar corredor
 inputNombreCorredor.addEventListener('keypress', (e) => {

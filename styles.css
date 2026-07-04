@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -67,7 +67,8 @@ header h1 {
     font-size: 0.9rem;
 }
 
-.form-grupo input {
+.form-grupo input,
+.form-grupo select {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #0f3460;
@@ -77,7 +78,8 @@ header h1 {
     font-size: 1rem;
 }
 
-.form-grupo input:focus {
+.form-grupo input:focus,
+.form-grupo select:focus {
     outline: none;
     border-color: #e94560;
     box-shadow: 0 0 5px rgba(233, 69, 96, 0.3);
@@ -172,6 +174,13 @@ header h1 {
     background: #3498db;
 }
 
+/* Config acciones */
+.config-acciones {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #0f3460;
+}
+
 /* Cronometro */
 .cronometro-display {
     text-align: center;
@@ -196,6 +205,23 @@ header h1 {
     flex-wrap: wrap;
 }
 
+/* Contador pendientes */
+.contador-pendientes {
+    text-align: center;
+    padding: 10px;
+    margin: 10px 0;
+    background: #0d1b2a;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    color: #aaa;
+}
+
+.pendientes-numero {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #f39c12;
+}
+
 /* Lista de corredores */
 .lista-corredores {
     max-height: 300px;
@@ -212,6 +238,8 @@ header h1 {
     border-radius: 8px;
     margin-bottom: 5px;
     border-left: 3px solid #e94560;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 
 .corredor-item .dorsal {
@@ -223,12 +251,30 @@ header h1 {
 .corredor-item .nombre {
     flex: 1;
     margin-left: 10px;
+    min-width: 100px;
 }
 
 .corredor-item .equipo-tag {
     color: #aaa;
     font-size: 0.85rem;
-    margin-left: 10px;
+}
+
+.corredor-item .categoria-tag {
+    background: #8e44ad;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.corredor-item .evento-tag {
+    background: #2980b9;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
 }
 
 .corredor-item .btn-eliminar {
@@ -261,20 +307,20 @@ header h1 {
 .botones-rapidos {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #0f3460;
 }
 
 .btn-dorsal-rapido {
-    width: 55px;
-    height: 55px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     border: 2px solid #e94560;
     background: #1a1a2e;
     color: #eaeaea;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
@@ -289,11 +335,11 @@ header h1 {
     transform: scale(1.1);
 }
 
-.btn-dorsal-rapido.llegado {
-    background: #27ae60;
-    border-color: #27ae60;
-    opacity: 0.6;
-    cursor: not-allowed;
+.botones-rapidos-titulo {
+    width: 100%;
+    color: #aaa;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
 }
 
 /* Tabla de resultados */
@@ -301,40 +347,28 @@ header h1 {
     overflow-x: auto;
 }
 
-#tabla-resultados {
+table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
-#tabla-resultados th {
+table th {
     background: #0f3460;
-    padding: 12px 10px;
+    padding: 10px 8px;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #eaeaea;
 }
 
-#tabla-resultados td {
-    padding: 10px;
+table td {
+    padding: 8px;
     border-bottom: 1px solid #0f3460;
+    font-size: 0.9rem;
 }
 
-#tabla-resultados tbody tr:hover {
+table tbody tr:hover {
     background: #1a1a2e;
-}
-
-#tabla-resultados tbody tr:first-child td {
-    color: #ffd700;
-    font-weight: bold;
-}
-
-#tabla-resultados tbody tr:nth-child(2) td {
-    color: #c0c0c0;
-}
-
-#tabla-resultados tbody tr:nth-child(3) td {
-    color: #cd7f32;
 }
 
 .tabla-vacia {
@@ -347,6 +381,88 @@ header h1 {
     margin-bottom: 10px;
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Filtro categorias */
+.filtro-categoria {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.filtro-categoria label {
+    color: #ccc;
+}
+
+.filtro-categoria select {
+    padding: 8px 12px;
+    border: 1px solid #0f3460;
+    border-radius: 8px;
+    background: #1a1a2e;
+    color: #eaeaea;
+    font-size: 1rem;
+}
+
+/* Categoria resultado bloque */
+.categoria-bloque {
+    background: #0d1b2a;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #0f3460;
+}
+
+.categoria-bloque h3 {
+    color: #8e44ad;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+/* Premiacion */
+.premiacion-card {
+    background: #0d1b2a;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 2px solid #0f3460;
+}
+
+.premiacion-card.lista-premiar {
+    border-color: #27ae60;
+    box-shadow: 0 0 10px rgba(39, 174, 96, 0.3);
+}
+
+.premiacion-card h3 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.premiacion-card h3 .estado-premiacion {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+
+.estado-listo {
+    background: #27ae60;
+    color: white;
+}
+
+.estado-pendiente {
+    background: #7f8c8d;
+    color: white;
+}
+
+.premiacion-tabla td:first-child {
+    font-weight: bold;
+    color: #e94560;
 }
 
 /* Pendientes */
@@ -382,49 +498,6 @@ header h1 {
     background: #0d1b2a;
     border-radius: 8px;
     border-left: 3px solid #f39c12;
-}
-
-/* Llegada form */
-.llegada-form {
-    align-items: center;
-}
-
-/* Notificaciones */
-.notificacion {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 25px;
-    border-radius: 8px;
-    font-weight: bold;
-    z-index: 1000;
-    animation: slideIn 0.3s ease;
-}
-
-.notificacion.exito {
-    background: #27ae60;
-    color: white;
-}
-
-.notificacion.error {
-    background: #e74c3c;
-    color: white;
-}
-
-.notificacion.info {
-    background: #2980b9;
-    color: white;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
 }
 
 /* Importar archivo */
@@ -473,7 +546,7 @@ header h1 {
     color: #aaa;
 }
 
-/* Modal de previsualizacion */
+/* Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -492,7 +565,7 @@ header h1 {
     background: #16213e;
     border-radius: 12px;
     padding: 25px;
-    max-width: 700px;
+    max-width: 750px;
     width: 100%;
     max-height: 80vh;
     overflow-y: auto;
@@ -508,7 +581,7 @@ header h1 {
     width: 100%;
     border-collapse: collapse;
     margin: 15px 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .modal-tabla th {
@@ -522,10 +595,6 @@ header h1 {
     padding: 8px 10px;
     border-bottom: 1px solid #0f3460;
     color: #ccc;
-}
-
-.modal-tabla tr:hover td {
-    background: #1a1a2e;
 }
 
 .modal-info {
@@ -543,6 +612,7 @@ header h1 {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+    flex-wrap: wrap;
     margin-top: 15px;
 }
 
@@ -555,6 +625,15 @@ header h1 {
     background: #2ecc71;
 }
 
+.btn-reemplazar-import {
+    background: #e67e22;
+    color: white;
+}
+
+.btn-reemplazar-import:hover {
+    background: #f39c12;
+}
+
 .btn-cancelar-import {
     background: #7f8c8d;
     color: white;
@@ -562,6 +641,45 @@ header h1 {
 
 .btn-cancelar-import:hover {
     background: #95a5a6;
+}
+
+/* Notificaciones */
+.notificacion {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    z-index: 3000;
+    animation: slideIn 0.3s ease;
+    max-width: 350px;
+}
+
+.notificacion.exito {
+    background: #27ae60;
+    color: white;
+}
+
+.notificacion.error {
+    background: #e74c3c;
+    color: white;
+}
+
+.notificacion.info {
+    background: #2980b9;
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 /* Responsive */
@@ -591,12 +709,20 @@ header h1 {
     }
 
     .btn-dorsal-rapido {
-        width: 48px;
-        height: 48px;
-        font-size: 1rem;
+        width: 44px;
+        height: 44px;
+        font-size: 0.9rem;
     }
 
     header h1 {
         font-size: 1.5rem;
+    }
+
+    .modal-botones {
+        flex-direction: column;
+    }
+
+    .modal-botones .btn {
+        width: 100%;
     }
 }

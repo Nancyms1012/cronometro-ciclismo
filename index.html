@@ -15,18 +15,22 @@
 
         <!-- Seccion: Configuracion de carrera -->
         <section id="seccion-config" class="seccion">
-            <h2>1. Configuracion de la Carrera</h2>
+            <h2>1. Configuracion del Evento</h2>
             <div class="form-grupo">
-                <label for="nombre-carrera">Nombre de la carrera:</label>
+                <label for="nombre-carrera">Nombre del evento:</label>
                 <input type="text" id="nombre-carrera" placeholder="Ej: Gran Fondo 2026">
-            </div>
-            <div class="form-grupo">
-                <label for="categoria">Categoria:</label>
-                <input type="text" id="categoria" placeholder="Ej: Elite, Sub-23, Master">
             </div>
             <div class="form-grupo">
                 <label for="distancia">Distancia (km):</label>
                 <input type="number" id="distancia" placeholder="Ej: 120">
+            </div>
+            <div class="form-grupo">
+                <label for="eventos">Eventos simultaneos (separar con coma):</label>
+                <input type="text" id="eventos" placeholder="Ej: Reto, Endurance">
+            </div>
+            <p class="instruccion">Los eventos simultaneos se configuran aqui. Las categorias se asignan a cada corredor.</p>
+            <div class="config-acciones">
+                <button id="btn-nueva-competencia" class="btn btn-reiniciar" onclick="nuevaCompetencia()">NUEVA COMPETENCIA (borrar todo)</button>
             </div>
         </section>
 
@@ -46,6 +50,16 @@
                     <label for="equipo">Equipo:</label>
                     <input type="text" id="equipo" placeholder="Equipo (opcional)">
                 </div>
+                <div class="form-grupo">
+                    <label for="categoria-corredor">Categoria:</label>
+                    <input type="text" id="categoria-corredor" placeholder="Ej: Elite, Master" list="lista-categorias">
+                    <datalist id="lista-categorias"></datalist>
+                </div>
+                <div class="form-grupo">
+                    <label for="evento-corredor">Evento:</label>
+                    <input type="text" id="evento-corredor" placeholder="Ej: Reto" list="lista-eventos">
+                    <datalist id="lista-eventos"></datalist>
+                </div>
                 <button id="btn-agregar-corredor" class="btn btn-agregar">+ Agregar</button>
             </div>
 
@@ -56,7 +70,7 @@
                     <button id="btn-descargar-plantilla" class="btn btn-plantilla" onclick="descargarPlantilla()">Descargar plantilla</button>
                     <input type="file" id="archivo-csv" accept=".csv,.xls,.xlsx" style="display:none">
                 </div>
-                <p class="importar-ayuda">Formato del archivo: columnas <strong>Dorsal, Nombre, Equipo, Categoria</strong> (separadas por coma o punto y coma)</p>
+                <p class="importar-ayuda">Formato: columnas <strong>Dorsal, Nombre, Equipo, Categoria, Evento</strong> (separadas por coma o punto y coma)</p>
             </div>
 
             <div id="lista-corredores" class="lista-corredores">
@@ -74,14 +88,14 @@
             <div class="cronometro-controles">
                 <button id="btn-iniciar" class="btn btn-iniciar">INICIAR CARRERA</button>
                 <button id="btn-pausar" class="btn btn-pausar" disabled>PAUSAR</button>
-                <button id="btn-reiniciar" class="btn btn-reiniciar" disabled>REINICIAR</button>
+                <button id="btn-reiniciar" class="btn btn-reiniciar" disabled>REINICIAR TIEMPOS</button>
             </div>
         </section>
 
         <!-- Seccion: Registro de llegadas -->
         <section id="seccion-llegadas" class="seccion">
             <h2>4. Registrar Llegadas</h2>
-            <p class="instruccion">Ingresa el dorsal del corredor que cruza la meta y presiona "Registrar Llegada"</p>
+            <p class="instruccion">Ingresa el dorsal o toca el boton del corredor que cruza la meta.</p>
             <div class="form-inline llegada-form">
                 <div class="form-grupo">
                     <label for="dorsal-llegada">Dorsal #:</label>
@@ -89,16 +103,19 @@
                 </div>
                 <button id="btn-registrar-llegada" class="btn btn-llegada" disabled>REGISTRAR LLEGADA</button>
             </div>
-            <!-- Botones rapidos de dorsales -->
-            <div id="botones-rapidos" class="botones-rapidos">
+            <!-- Contador de pendientes -->
+            <div id="contador-pendientes" class="contador-pendientes">
+                <span class="pendientes-numero" id="num-pendientes">0</span> corredores por llegar
             </div>
+            <!-- Botones rapidos de dorsales -->
+            <div id="botones-rapidos" class="botones-rapidos"></div>
         </section>
 
-        <!-- Seccion: Resultados -->
+        <!-- Seccion: Resultados generales -->
         <section id="seccion-resultados" class="seccion">
-            <h2>5. Clasificacion</h2>
+            <h2>5. Clasificacion General</h2>
             <div class="resultados-controles">
-                <button id="btn-exportar" class="btn btn-exportar">Exportar a CSV (Excel)</button>
+                <button id="btn-exportar" class="btn btn-exportar">Exportar TODO a CSV</button>
             </div>
             <div class="tabla-container">
                 <table id="tabla-resultados">
@@ -108,17 +125,37 @@
                             <th>Dorsal</th>
                             <th>Nombre</th>
                             <th>Equipo</th>
+                            <th>Categoria</th>
+                            <th>Evento</th>
                             <th>Tiempo</th>
-                            <th>Diferencia</th>
+                            <th>Dif. General</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla">
-                        <tr>
-                            <td colspan="6" class="tabla-vacia">No hay llegadas registradas</td>
-                        </tr>
+                        <tr><td colspan="8" class="tabla-vacia">No hay llegadas registradas</td></tr>
                     </tbody>
                 </table>
             </div>
+        </section>
+
+        <!-- Seccion: Resultados por categoria -->
+        <section id="seccion-categorias" class="seccion">
+            <h2>6. Resultados por Categoria</h2>
+            <div class="filtro-categoria">
+                <label for="filtro-cat">Filtrar categoria:</label>
+                <select id="filtro-cat" onchange="renderizarResultadosCategoria()">
+                    <option value="todas">-- Todas --</option>
+                </select>
+                <button class="btn btn-exportar" onclick="exportarPorCategoria()">Exportar por Categoria</button>
+            </div>
+            <div id="resultados-por-categoria"></div>
+        </section>
+
+        <!-- Seccion: Premiacion -->
+        <section id="seccion-premiacion" class="seccion">
+            <h2>7. Premiacion - Top 5 por Categoria</h2>
+            <p class="instruccion">Las categorias en <span style="color:#27ae60;font-weight:bold;">VERDE</span> ya tienen suficientes corredores para premiar.</p>
+            <div id="premiacion-container"></div>
         </section>
 
         <!-- Seccion: Corredores sin llegar -->

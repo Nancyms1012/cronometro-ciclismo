@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronometro Ciclismo - Registro de Tiempos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cronometro Ciclismo</h1>
+            <p class="subtitle">Registro de tiempos de competencia</p>
+        </header>
+
+        <!-- Seccion: Configuracion de carrera -->
+        <section id="seccion-config" class="seccion">
+            <h2>1. Configuracion de la Carrera</h2>
+            <div class="form-grupo">
+                <label for="nombre-carrera">Nombre de la carrera:</label>
+                <input type="text" id="nombre-carrera" placeholder="Ej: Gran Fondo 2026">
+            </div>
+            <div class="form-grupo">
+                <label for="categoria">Categoria:</label>
+                <input type="text" id="categoria" placeholder="Ej: Elite, Sub-23, Master">
+            </div>
+            <div class="form-grupo">
+                <label for="distancia">Distancia (km):</label>
+                <input type="number" id="distancia" placeholder="Ej: 120">
+            </div>
+        </section>
+
+        <!-- Seccion: Registro de corredores -->
+        <section id="seccion-corredores" class="seccion">
+            <h2>2. Registrar Corredores</h2>
+            <div class="form-inline">
+                <div class="form-grupo">
+                    <label for="dorsal">Dorsal #:</label>
+                    <input type="number" id="dorsal" placeholder="1">
+                </div>
+                <div class="form-grupo">
+                    <label for="nombre-corredor">Nombre:</label>
+                    <input type="text" id="nombre-corredor" placeholder="Nombre del corredor">
+                </div>
+                <div class="form-grupo">
+                    <label for="equipo">Equipo:</label>
+                    <input type="text" id="equipo" placeholder="Equipo (opcional)">
+                </div>
+                <button id="btn-agregar-corredor" class="btn btn-agregar">+ Agregar</button>
+            </div>
+            <div id="lista-corredores" class="lista-corredores">
+                <p class="placeholder-text">No hay corredores registrados</p>
+            </div>
+            <p class="contador">Corredores registrados: <span id="total-corredores">0</span></p>
+        </section>
+
+        <!-- Seccion: Cronometro -->
+        <section id="seccion-cronometro" class="seccion">
+            <h2>3. Cronometro de Carrera</h2>
+            <div class="cronometro-display">
+                <span id="tiempo-display">00:00:00.000</span>
+            </div>
+            <div class="cronometro-controles">
+                <button id="btn-iniciar" class="btn btn-iniciar">INICIAR CARRERA</button>
+                <button id="btn-pausar" class="btn btn-pausar" disabled>PAUSAR</button>
+                <button id="btn-reiniciar" class="btn btn-reiniciar" disabled>REINICIAR</button>
+            </div>
+        </section>
+
+        <!-- Seccion: Registro de llegadas -->
+        <section id="seccion-llegadas" class="seccion">
+            <h2>4. Registrar Llegadas</h2>
+            <p class="instruccion">Ingresa el dorsal del corredor que cruza la meta y presiona "Registrar Llegada"</p>
+            <div class="form-inline llegada-form">
+                <div class="form-grupo">
+                    <label for="dorsal-llegada">Dorsal #:</label>
+                    <input type="number" id="dorsal-llegada" placeholder="Dorsal">
+                </div>
+                <button id="btn-registrar-llegada" class="btn btn-llegada" disabled>REGISTRAR LLEGADA</button>
+            </div>
+            <!-- Botones rapidos de dorsales -->
+            <div id="botones-rapidos" class="botones-rapidos">
+            </div>
+        </section>
+
+        <!-- Seccion: Resultados -->
+        <section id="seccion-resultados" class="seccion">
+            <h2>5. Clasificacion</h2>
+            <div class="resultados-controles">
+                <button id="btn-exportar" class="btn btn-exportar">Exportar a CSV (Excel)</button>
+            </div>
+            <div class="tabla-container">
+                <table id="tabla-resultados">
+                    <thead>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Dorsal</th>
+                            <th>Nombre</th>
+                            <th>Equipo</th>
+                            <th>Tiempo</th>
+                            <th>Diferencia</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla">
+                        <tr>
+                            <td colspan="6" class="tabla-vacia">No hay llegadas registradas</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Seccion: Corredores sin llegar -->
+        <section id="seccion-pendientes" class="seccion">
+            <h2>Corredores pendientes de llegada</h2>
+            <div id="lista-pendientes" class="lista-pendientes">
+                <p class="placeholder-text">Inicia la carrera para ver los corredores pendientes</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

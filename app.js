@@ -37,6 +37,8 @@ const btnExportar = document.getElementById('btn-exportar');
 const numPendientes = document.getElementById('num-pendientes');
 const filtroCat = document.getElementById('filtro-cat');
 const inputArchivoCSV = document.getElementById('archivo-csv');
+const selectEventoExportar = document.getElementById('select-evento-exportar');
+const selectEventoExportarCat = document.getElementById('select-evento-exportar-cat');
 
 // --- Utilidad ---
 function formatearTiempo(ms) {
@@ -74,6 +76,14 @@ function actualizarDatalists() {
     cats.forEach(c => { filtroCat.innerHTML += `<option value="${c}">${c}</option>`; });
     evts.forEach(e => { filtroCat.innerHTML += `<option value="evento:${e}">Evento: ${e}</option>`; });
     filtroCat.value = filtroActual || 'todas';
+    // Actualizar selectores de evento para exportar
+    const evtActual1 = selectEventoExportar.value;
+    const evtActual2 = selectEventoExportarCat.value;
+    const optsEvento = '<option value="todos">-- Todos los eventos --</option>' + evts.map(e => `<option value="${e}">${e}</option>`).join('');
+    selectEventoExportar.innerHTML = optsEvento;
+    selectEventoExportarCat.innerHTML = optsEvento;
+    selectEventoExportar.value = evtActual1 || 'todos';
+    selectEventoExportarCat.value = evtActual2 || 'todos';
 }
 
 function getDesfaseCategoria(categoria) {
@@ -419,16 +429,22 @@ function exportarPorCategoria() {
 }
 
 // --- Exportar por Evento ---
-function exportarPorEvento() {
+function exportarPorEvento(eventoFiltro) {
     if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
     const nombre = inputNombreCarrera.value || 'Carrera';
+
+    let llegadasFiltradas = [...llegadas];
+    if (eventoFiltro && eventoFiltro !== 'todos') {
+        llegadasFiltradas = llegadas.filter(l => l.evento === eventoFiltro);
+        if (llegadasFiltradas.length === 0) { mostrarNotificacion(`No hay resultados para evento "${eventoFiltro}"`, 'error'); return; }
+    }
+
     const eventos = {};
-    llegadas.forEach(l => { const evt = l.evento || 'Sin evento'; if (!eventos[evt]) eventos[evt] = []; eventos[evt].push(l); });
+    llegadasFiltradas.forEach(l => { const evt = l.evento || 'Sin evento'; if (!eventos[evt]) eventos[evt] = []; eventos[evt].push(l); });
 
     let csv = `Resultados por Evento - ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\n`;
     Object.keys(eventos).sort().forEach(evt => {
         const grupo = eventos[evt];
-        // Dentro de cada evento, agrupar por categoria
         const catsDentro = {};
         grupo.forEach(l => { const cat = l.categoria || 'Sin cat'; if (!catsDentro[cat]) catsDentro[cat] = []; catsDentro[cat].push(l); });
 
@@ -444,7 +460,18 @@ function exportarPorEvento() {
             });
         });
     });
-    descargarCSV(csv, `resultados_por_evento_${nombre.replace(/\s+/g,'_')}`);
+    const sufijo = eventoFiltro && eventoFiltro !== 'todos' ? `_${eventoFiltro.replace(/\s+/g,'_')}` : '_todos';
+    descargarCSV(csv, `resultados_evento${sufijo}_${nombre.replace(/\s+/g,'_')}`);
+}
+
+function exportarEventoSeleccionado() {
+    const evento = selectEventoExportar.value;
+    exportarPorEvento(evento);
+}
+
+function exportarEventoSeleccionadoCat() {
+    const evento = selectEventoExportarCat.value;
+    exportarPorEvento(evento);
 }
 
 // --- Exportar Pendientes ---

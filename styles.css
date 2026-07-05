@@ -66,6 +66,7 @@ table tbody tr:hover { background: #1a1a2e; }
 .filtro-categoria { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 15px; }
 .filtro-categoria label { color: #ccc; }
 .filtro-categoria select { padding: 8px 12px; border: 1px solid #0f3460; border-radius: 8px; background: #1a1a2e; color: #eaeaea; font-size: 1rem; }
+.select-evento { padding: 8px 12px; border: 1px solid #0f3460; border-radius: 8px; background: #1a1a2e; color: #eaeaea; font-size: 0.9rem; }
 .categoria-bloque { background: #0d1b2a; border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid #0f3460; }
 .categoria-bloque h3 { color: #8e44ad; margin-bottom: 10px; font-size: 1rem; }
 /* Premiacion */

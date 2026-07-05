@@ -117,7 +117,10 @@
             <h2>6. Clasificacion General</h2>
             <div class="resultados-controles">
                 <button id="btn-exportar" class="btn btn-exportar">Exportar General CSV</button>
-                <button class="btn btn-exportar" onclick="exportarPorEvento()">Exportar por Evento</button>
+                <select id="select-evento-exportar" class="select-evento">
+                    <option value="todos">-- Todos los eventos --</option>
+                </select>
+                <button class="btn btn-exportar" onclick="exportarEventoSeleccionado()">Exportar Evento</button>
                 <button class="btn btn-exportar" onclick="exportarPendientes()">Exportar Pendientes</button>
             </div>
             <div class="tabla-scroll-container">
@@ -161,7 +164,10 @@
                     <option value="todas">-- Todas --</option>
                 </select>
                 <button class="btn btn-exportar" onclick="exportarPorCategoria()">Exportar por Categoria</button>
-                <button class="btn btn-exportar" onclick="exportarPorEvento()">Exportar por Evento</button>
+                <select id="select-evento-exportar-cat" class="select-evento">
+                    <option value="todos">-- Todos los eventos --</option>
+                </select>
+                <button class="btn btn-exportar" onclick="exportarEventoSeleccionadoCat()">Exportar Evento</button>
             </div>
             <div id="resultados-por-categoria"></div>
         </section>

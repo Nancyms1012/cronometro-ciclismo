@@ -63,7 +63,9 @@ function obtenerCategorias() {
 }
 
 function obtenerEventos() {
-    return [...new Set(corredores.map(c => c.evento).filter(e => e))];
+    const evtsCorredores = corredores.map(c => c.evento).filter(e => e);
+    const evtsLlegadas = llegadas.map(l => l.evento).filter(e => e);
+    return [...new Set([...evtsCorredores, ...evtsLlegadas])];
 }
 
 function actualizarDatalists() {
@@ -662,6 +664,16 @@ function cargarDatos() {
         corredores = p.corredores || [];
         llegadas = p.llegadas || [];
         salidasDesfase = p.salidasDesfase || {};
+        // Recalcular tiempoReal para llegadas que no lo tengan (compat. version anterior)
+        llegadas.forEach(l => {
+            if (l.tiempoReal === undefined || l.tiempoReal === null) {
+                const desfase = getDesfaseCategoria(l.categoria);
+                l.tiempoReal = l.tiempo - desfase;
+            }
+            if (!l.tiempoRealFormateado) {
+                l.tiempoRealFormateado = formatearTiempo(l.tiempoReal);
+            }
+        });
         renderizarTodo();
     }
 }

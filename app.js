@@ -7,6 +7,8 @@
 let corredores = [];
 let llegadas = [];
 let salidasDesfase = {}; // { "categoria": minutos_desfase }
+let estadosCorredor = {}; // { "dorsal": "DNS" | "DNF" | "DSQ" }
+let corredoresQueSalieron = null; // null = todos salieron, array = solo estos dorsales
 let tiempoInicio = null;
 let tiempoTranscurrido = 0;
 let cronometroInterval = null;
@@ -125,6 +127,7 @@ function nuevaCompetencia() {
     if (!confirm('ATENCION: Esto borrara TODOS los datos. Seguro?')) return;
     clearInterval(cronometroInterval);
     corredores = []; llegadas = []; salidasDesfase = {};
+    estadosCorredor = {}; corredoresQueSalieron = null;
     tiempoInicio = null; tiempoTranscurrido = 0;
     carreraEnCurso = false; carreraPausada = false;
     inputNombreCarrera.value = ''; inputDistancia.value = ''; inputEventos.value = '';
@@ -279,26 +282,36 @@ function renderizarTabla() {
     }).join('');
 }
 
-// --- Botones rapidos (solo pendientes, ordenados) ---
+// --- Pendientes (contador real: salieron - llegaron - DNF/DSQ) ---
+function renderizarPendientes() {
+    const dorsalesLlegados = llegadas.map(l => l.dorsal);
+    const enRuta = corredores.filter(c => {
+        if (corredoresQueSalieron && !corredoresQueSalieron.includes(c.dorsal)) return false;
+        if (estadosCorredor[c.dorsal]) return false;
+        if (dorsalesLlegados.includes(c.dorsal)) return false;
+        return true;
+    });
+    numPendientes.textContent = enRuta.length;
+}
+
+// --- Botones rapidos (solo en ruta, ordenados) ---
 function renderizarBotonesRapidos() {
     const dorsalesLlegados = llegadas.map(l => l.dorsal);
-    const pendientes = corredores.filter(c => !dorsalesLlegados.includes(c.dorsal))
-        .sort((a, b) => Number(a.dorsal) - Number(b.dorsal));
+    const pendientes = corredores.filter(c => {
+        if (corredoresQueSalieron && !corredoresQueSalieron.includes(c.dorsal)) return false;
+        if (estadosCorredor[c.dorsal]) return false;
+        if (dorsalesLlegados.includes(c.dorsal)) return false;
+        return true;
+    }).sort((a, b) => Number(a.dorsal) - Number(b.dorsal));
+
     if (pendientes.length === 0) {
-        botonesRapidos.innerHTML = '<p class="botones-rapidos-titulo">Todos han llegado</p>';
+        botonesRapidos.innerHTML = '<p class="botones-rapidos-titulo">Todos han llegado o fueron marcados</p>';
         return;
     }
-    botonesRapidos.innerHTML = '<p class="botones-rapidos-titulo">Toque rapido (pendientes, ordenados):</p>';
+    botonesRapidos.innerHTML = '<p class="botones-rapidos-titulo">Toque rapido (en ruta, ordenados):</p>';
     botonesRapidos.innerHTML += pendientes.map(c =>
         `<button class="btn-dorsal-rapido" onclick="registrarLlegadaRapida('${c.dorsal}')" title="${c.nombre} - ${c.categoria || ''}">${c.dorsal}</button>`
     ).join('');
-}
-
-// --- Pendientes (solo contador) ---
-function renderizarPendientes() {
-    const dorsalesLlegados = llegadas.map(l => l.dorsal);
-    const pendientes = corredores.filter(c => !dorsalesLlegados.includes(c.dorsal));
-    numPendientes.textContent = pendientes.length;
 }
 
 // --- Resultados por categoria ---
@@ -633,6 +646,85 @@ function confirmarImportacion(modo) {
 }
 
 
+// --- Lista de Salida y Estados (DNS/DNF/DSQ) ---
+function importarListaSalida() {
+    document.getElementById('archivo-salida').click();
+}
+
+function procesarListaSalida(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const lineas = e.target.result.split(/\r?\n/).filter(l => l.trim());
+        const dorsales = [];
+        lineas.forEach(l => {
+            // Buscar numeros en cada linea (puede ser CSV con dorsal en primera columna o solo numeros)
+            const nums = l.match(/\d+/);
+            if (nums) dorsales.push(nums[0]);
+        });
+        if (dorsales.length === 0) { mostrarNotificacion('No se encontraron dorsales en el archivo', 'error'); return; }
+
+        // Verificar cuantos coinciden con corredores registrados
+        const validos = dorsales.filter(d => corredores.find(c => c.dorsal === d));
+        corredoresQueSalieron = validos;
+
+        // Marcar como DNS los que no salieron
+        corredores.forEach(c => {
+            if (!validos.includes(c.dorsal) && !estadosCorredor[c.dorsal]) {
+                estadosCorredor[c.dorsal] = 'DNS';
+            }
+        });
+
+        renderizarPendientes(); renderizarBotonesRapidos(); renderizarEstados();
+        mostrarNotificacion(`Lista de salida: ${validos.length} corredores partieron (${corredores.length - validos.length} DNS)`, 'exito');
+    };
+    reader.readAsText(archivo, 'UTF-8');
+    event.target.value = '';
+}
+
+function marcarEstado(estado) {
+    const dorsal = document.getElementById('dorsal-estado').value.trim();
+    if (!dorsal) { mostrarNotificacion('Ingresa un dorsal', 'error'); return; }
+    const corredor = corredores.find(c => c.dorsal === dorsal);
+    if (!corredor) { mostrarNotificacion(`No existe dorsal #${dorsal}`, 'error'); return; }
+    if (llegadas.find(l => l.dorsal === dorsal)) { mostrarNotificacion(`#${dorsal} ya cruzo la meta, no se puede marcar`, 'error'); return; }
+
+    estadosCorredor[dorsal] = estado;
+    document.getElementById('dorsal-estado').value = '';
+    renderizarPendientes(); renderizarBotonesRapidos(); renderizarEstados();
+    mostrarNotificacion(`#${dorsal} ${corredor.nombre} marcado como ${estado}`, 'info');
+}
+
+function quitarEstado(dorsal) {
+    delete estadosCorredor[dorsal];
+    if (corredoresQueSalieron && !corredoresQueSalieron.includes(dorsal)) {
+        corredoresQueSalieron.push(dorsal);
+    }
+    renderizarPendientes(); renderizarBotonesRapidos(); renderizarEstados();
+    mostrarNotificacion(`Estado removido de #${dorsal}`, 'info');
+}
+
+function renderizarEstados() {
+    const container = document.getElementById('lista-estados');
+    const conEstado = Object.keys(estadosCorredor);
+    if (conEstado.length === 0) {
+        container.innerHTML = '<p class="placeholder-text">No hay corredores marcados</p>';
+        return;
+    }
+    container.innerHTML = conEstado.map(dorsal => {
+        const corredor = corredores.find(c => c.dorsal === dorsal);
+        const nombre = corredor ? corredor.nombre : 'Desconocido';
+        const estado = estadosCorredor[dorsal];
+        const claseEstado = estado === 'DNS' ? 'estado-dns' : estado === 'DNF' ? 'estado-dnf' : 'estado-dsq';
+        return `<div class="estado-item ${claseEstado}">
+            <span class="estado-badge">${estado}</span>
+            <span>#${dorsal} ${nombre}</span>
+            <button class="btn-eliminar" onclick="quitarEstado('${dorsal}')">X</button>
+        </div>`;
+    }).join('');
+}
+
 // --- Event Listeners ---
 btnAgregarCorredor.addEventListener('click', agregarCorredor);
 btnIniciar.addEventListener('click', iniciarCronometro);
@@ -650,7 +742,8 @@ inputDorsalLlegada.addEventListener('keypress', e => { if (e.key === 'Enter') re
 function guardarDatos() {
     localStorage.setItem('cronometro-ciclismo', JSON.stringify({
         nombreCarrera: inputNombreCarrera.value, distancia: inputDistancia.value,
-        eventos: inputEventos.value, corredores, llegadas, salidasDesfase
+        eventos: inputEventos.value, corredores, llegadas, salidasDesfase,
+        estadosCorredor, corredoresQueSalieron
     }));
 }
 
@@ -664,6 +757,8 @@ function cargarDatos() {
         corredores = p.corredores || [];
         llegadas = p.llegadas || [];
         salidasDesfase = p.salidasDesfase || {};
+        estadosCorredor = p.estadosCorredor || {};
+        corredoresQueSalieron = p.corredoresQueSalieron || null;
         // Recalcular tiempoReal para llegadas que no lo tengan (compat. version anterior)
         llegadas.forEach(l => {
             if (l.tiempoReal === undefined || l.tiempoReal === null) {
@@ -675,6 +770,7 @@ function cargarDatos() {
             }
         });
         renderizarTodo();
+        renderizarEstados();
     }
 }
 

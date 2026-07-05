@@ -114,7 +114,29 @@
 
         <!-- Seccion 6: Clasificacion General -->
         <section class="seccion">
-            <h2>6. Clasificacion General</h2>
+            <h2>6. Control de Carrera (DNS / DNF / DSQ)</h2>
+            <p class="instruccion">Importa la lista de dorsales que realmente salieron, o marca individualmente los que abandonaron (DNF), no salieron (DNS) o fueron descalificados (DSQ).</p>
+            <div class="resultados-controles">
+                <button class="btn btn-importar" onclick="importarListaSalida()">Importar Lista de Salida (CSV)</button>
+                <input type="file" id="archivo-salida" accept=".csv,.txt" style="display:none" onchange="procesarListaSalida(event)">
+            </div>
+            <div class="form-inline" style="margin-top:15px;">
+                <div class="form-grupo">
+                    <label for="dorsal-estado">Dorsal #:</label>
+                    <input type="number" id="dorsal-estado" placeholder="Dorsal">
+                </div>
+                <button class="btn btn-reiniciar" onclick="marcarEstado('DNF')" style="font-size:0.85rem;">DNF (Abandono)</button>
+                <button class="btn btn-pausar" onclick="marcarEstado('DNS')" style="font-size:0.85rem;">DNS (No salio)</button>
+                <button class="btn btn-exportar" onclick="marcarEstado('DSQ')" style="font-size:0.85rem;background:#8e44ad;">DSQ (Descalificado)</button>
+            </div>
+            <div id="lista-estados" style="margin-top:15px;max-height:200px;overflow-y:auto;">
+                <p class="placeholder-text">No hay corredores marcados</p>
+            </div>
+        </section>
+
+        <!-- Seccion 7: Clasificacion General -->
+        <section class="seccion">
+            <h2>7. Clasificacion General</h2>
             <div class="resultados-controles">
                 <button id="btn-exportar" class="btn btn-exportar">Exportar General CSV</button>
                 <select id="select-evento-exportar" class="select-evento">
@@ -147,7 +169,7 @@
 
         <!-- Seccion 7: Premiacion (ANTES de resultados por categoria) -->
         <section class="seccion">
-            <h2>7. Premiacion - Top 5 por Categoria</h2>
+            <h2>8. Premiacion - Top 5 por Categoria</h2>
             <p class="instruccion">Solo se muestran las categorias <span style="color:#27ae60;font-weight:bold;">LISTAS PARA PREMIAR</span> (ya llegaron los 5 primeros o todos los de la categoria).</p>
             <div class="resultados-controles">
                 <button class="btn btn-exportar" onclick="exportarPremiacion()">Exportar Premiacion CSV</button>
@@ -157,7 +179,7 @@
 
         <!-- Seccion 8: Resultados por Categoria -->
         <section class="seccion">
-            <h2>8. Resultados por Categoria</h2>
+            <h2>9. Resultados por Categoria</h2>
             <div class="filtro-categoria">
                 <label for="filtro-cat">Filtrar:</label>
                 <select id="filtro-cat" onchange="renderizarResultadosCategoria()">

@@ -13,8 +13,8 @@
             <p class="subtitle">Registro de tiempos de competencia</p>
         </header>
 
-        <!-- Seccion: Configuracion de carrera -->
-        <section id="seccion-config" class="seccion">
+        <!-- Seccion 1: Configuracion del Evento -->
+        <section class="seccion">
             <h2>1. Configuracion del Evento</h2>
             <div class="form-grupo">
                 <label for="nombre-carrera">Nombre del evento:</label>
@@ -30,12 +30,12 @@
             </div>
             <p class="instruccion">Los eventos simultaneos se configuran aqui. Las categorias se asignan a cada corredor.</p>
             <div class="config-acciones">
-                <button id="btn-nueva-competencia" class="btn btn-reiniciar" onclick="nuevaCompetencia()">NUEVA COMPETENCIA (borrar todo)</button>
+                <button class="btn btn-reiniciar" onclick="nuevaCompetencia()">NUEVA COMPETENCIA (borrar todo)</button>
             </div>
         </section>
 
-        <!-- Seccion: Registro de corredores -->
-        <section id="seccion-corredores" class="seccion">
+        <!-- Seccion 2: Registro de corredores -->
+        <section class="seccion">
             <h2>2. Registrar Corredores</h2>
             <div class="form-inline">
                 <div class="form-grupo">
@@ -62,26 +62,29 @@
                 </div>
                 <button id="btn-agregar-corredor" class="btn btn-agregar">+ Agregar</button>
             </div>
-
-            <!-- Importar desde archivo -->
             <div class="importar-seccion">
                 <div class="importar-header">
-                    <button id="btn-importar" class="btn btn-importar" onclick="document.getElementById('archivo-csv').click()">Importar desde CSV / Excel</button>
-                    <button id="btn-descargar-plantilla" class="btn btn-plantilla" onclick="descargarPlantilla()">Descargar plantilla</button>
+                    <button class="btn btn-importar" onclick="document.getElementById('archivo-csv').click()">Importar desde CSV</button>
+                    <button class="btn btn-plantilla" onclick="descargarPlantilla()">Descargar plantilla</button>
                     <input type="file" id="archivo-csv" accept=".csv,.xls,.xlsx" style="display:none">
                 </div>
-                <p class="importar-ayuda">Formato: columnas <strong>Dorsal, Nombre, Equipo, Categoria, Evento</strong> (separadas por coma o punto y coma)</p>
+                <p class="importar-ayuda">Formato: <strong>Dorsal, Nombre, Equipo, Categoria, Evento</strong> (coma o punto y coma)</p>
             </div>
-
-            <div id="lista-corredores" class="lista-corredores">
-                <p class="placeholder-text">No hay corredores registrados</p>
-            </div>
+            <div id="lista-corredores" class="lista-corredores"></div>
             <p class="contador">Corredores registrados: <span id="total-corredores">0</span></p>
         </section>
 
-        <!-- Seccion: Cronometro -->
-        <section id="seccion-cronometro" class="seccion">
-            <h2>3. Cronometro de Carrera</h2>
+        <!-- Seccion 3: Salidas escalonadas -->
+        <section class="seccion">
+            <h2>3. Horarios de Salida por Categoria</h2>
+            <p class="instruccion">Configura el desfase en minutos respecto al inicio del cronometro. Ej: si el crono arranca a las 7:30 y una categoria sale a las 8:00, su desfase es 30 min.</p>
+            <div id="salidas-container"></div>
+            <button class="btn btn-agregar" onclick="renderizarSalidas()">Actualizar categorias</button>
+        </section>
+
+        <!-- Seccion 4: Cronometro -->
+        <section class="seccion">
+            <h2>4. Cronometro de Carrera</h2>
             <div class="cronometro-display">
                 <span id="tiempo-display">00:00:00.000</span>
             </div>
@@ -92,9 +95,9 @@
             </div>
         </section>
 
-        <!-- Seccion: Registro de llegadas -->
-        <section id="seccion-llegadas" class="seccion">
-            <h2>4. Registrar Llegadas</h2>
+        <!-- Seccion 5: Registro de llegadas -->
+        <section class="seccion">
+            <h2>5. Registrar Llegadas</h2>
             <p class="instruccion">Ingresa el dorsal o toca el boton del corredor que cruza la meta.</p>
             <div class="form-inline llegada-form">
                 <div class="form-grupo">
@@ -103,21 +106,21 @@
                 </div>
                 <button id="btn-registrar-llegada" class="btn btn-llegada" disabled>REGISTRAR LLEGADA</button>
             </div>
-            <!-- Contador de pendientes -->
-            <div id="contador-pendientes" class="contador-pendientes">
+            <div class="contador-pendientes">
                 <span class="pendientes-numero" id="num-pendientes">0</span> corredores por llegar
             </div>
-            <!-- Botones rapidos de dorsales -->
             <div id="botones-rapidos" class="botones-rapidos"></div>
         </section>
 
-        <!-- Seccion: Resultados generales -->
-        <section id="seccion-resultados" class="seccion">
-            <h2>5. Clasificacion General</h2>
+        <!-- Seccion 6: Clasificacion General -->
+        <section class="seccion">
+            <h2>6. Clasificacion General</h2>
             <div class="resultados-controles">
-                <button id="btn-exportar" class="btn btn-exportar">Exportar TODO a CSV</button>
+                <button id="btn-exportar" class="btn btn-exportar">Exportar General CSV</button>
+                <button class="btn btn-exportar" onclick="exportarPorEvento()">Exportar por Evento</button>
+                <button class="btn btn-exportar" onclick="exportarPendientes()">Exportar Pendientes</button>
             </div>
-            <div class="tabla-container">
+            <div class="tabla-scroll-container">
                 <table id="tabla-resultados">
                     <thead>
                         <tr>
@@ -127,43 +130,40 @@
                             <th>Equipo</th>
                             <th>Categoria</th>
                             <th>Evento</th>
-                            <th>Tiempo</th>
+                            <th>Tiempo Crono</th>
+                            <th>Tiempo Real</th>
                             <th>Dif. General</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla">
-                        <tr><td colspan="8" class="tabla-vacia">No hay llegadas registradas</td></tr>
+                        <tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Seccion: Resultados por categoria -->
-        <section id="seccion-categorias" class="seccion">
-            <h2>6. Resultados por Categoria</h2>
+        <!-- Seccion 7: Premiacion (ANTES de resultados por categoria) -->
+        <section class="seccion">
+            <h2>7. Premiacion - Top 5 por Categoria</h2>
+            <p class="instruccion">Solo se muestran las categorias <span style="color:#27ae60;font-weight:bold;">LISTAS PARA PREMIAR</span> (ya llegaron los 5 primeros o todos los de la categoria).</p>
+            <div class="resultados-controles">
+                <button class="btn btn-exportar" onclick="exportarPremiacion()">Exportar Premiacion CSV</button>
+            </div>
+            <div id="premiacion-container"></div>
+        </section>
+
+        <!-- Seccion 8: Resultados por Categoria -->
+        <section class="seccion">
+            <h2>8. Resultados por Categoria</h2>
             <div class="filtro-categoria">
-                <label for="filtro-cat">Filtrar categoria:</label>
+                <label for="filtro-cat">Filtrar:</label>
                 <select id="filtro-cat" onchange="renderizarResultadosCategoria()">
                     <option value="todas">-- Todas --</option>
                 </select>
                 <button class="btn btn-exportar" onclick="exportarPorCategoria()">Exportar por Categoria</button>
+                <button class="btn btn-exportar" onclick="exportarPorEvento()">Exportar por Evento</button>
             </div>
             <div id="resultados-por-categoria"></div>
-        </section>
-
-        <!-- Seccion: Premiacion -->
-        <section id="seccion-premiacion" class="seccion">
-            <h2>7. Premiacion - Top 5 por Categoria</h2>
-            <p class="instruccion">Las categorias en <span style="color:#27ae60;font-weight:bold;">VERDE</span> ya tienen suficientes corredores para premiar.</p>
-            <div id="premiacion-container"></div>
-        </section>
-
-        <!-- Seccion: Corredores sin llegar -->
-        <section id="seccion-pendientes" class="seccion">
-            <h2>Corredores pendientes de llegada</h2>
-            <div id="lista-pendientes" class="lista-pendientes">
-                <p class="placeholder-text">Inicia la carrera para ver los corredores pendientes</p>
-            </div>
         </section>
     </div>
 

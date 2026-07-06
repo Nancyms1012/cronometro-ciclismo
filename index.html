@@ -223,19 +223,17 @@
 
             <!-- Resultados por Categoria -->
             <section class="seccion">
-                <h2>9. Resultados por Categoria</h2>
-                <div class="filtro-categoria">
-                    <label for="filtro-cat">Filtrar:</label>
-                    <select id="filtro-cat" onchange="renderizarResultadosCategoria()">
-                        <option value="todas">-- Todas --</option>
+                <h2>9. Exportar por Categoria / Evento</h2>
+                <div class="resultados-controles">
+                    <select id="filtro-cat" class="select-evento">
+                        <option value="todas">-- Todas las categorias --</option>
                     </select>
-                    <button class="btn btn-exportar" onclick="exportarPorCategoria()">Exportar Categoria</button>
+                    <button class="btn btn-exportar" onclick="exportarPorCategoria()">Exportar por Categoria</button>
                     <select id="select-evento-exportar-cat" class="select-evento">
-                        <option value="todos">-- Todos --</option>
+                        <option value="todos">-- Todos los eventos --</option>
                     </select>
-                    <button class="btn btn-exportar" onclick="exportarEventoSeleccionadoCat()">Exportar Evento</button>
+                    <button class="btn btn-exportar" onclick="exportarEventoSeleccionadoCat()">Exportar por Evento</button>
                 </div>
-                <div id="resultados-por-categoria"></div>
             </section>
         </div>
     </div>

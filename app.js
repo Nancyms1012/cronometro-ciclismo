@@ -389,44 +389,9 @@ function renderizarBotonesRapidos() {
     // No se usan bolitas en esta version
 }
 
-// --- Resultados por categoria ---
+// --- Resultados por categoria (solo para exportar, sin UI) ---
 function renderizarResultadosCategoria() {
-    const container = document.getElementById('resultados-por-categoria');
-    if (llegadas.length === 0) { container.innerHTML = '<p class="placeholder-text">No hay resultados aun</p>'; return; }
-
-    const filtro = filtroCat.value;
-    let llegadasFiltradas = [...llegadas];
-    if (filtro !== 'todas') {
-        if (filtro.startsWith('evento:')) {
-            llegadasFiltradas = llegadas.filter(l => l.evento === filtro.replace('evento:', ''));
-        } else {
-            llegadasFiltradas = llegadas.filter(l => l.categoria === filtro);
-        }
-    }
-
-    const categorias = {};
-    llegadasFiltradas.forEach(l => {
-        const cat = l.categoria || 'Sin categoria';
-        if (!categorias[cat]) categorias[cat] = [];
-        categorias[cat].push(l);
-    });
-
-    if (Object.keys(categorias).length === 0) { container.innerHTML = '<p class="placeholder-text">Sin resultados para este filtro</p>'; return; }
-
-    let html = '';
-    Object.keys(categorias).sort().forEach(cat => {
-        const grupo = categorias[cat];
-        const primerReal = grupo[0].tiempoReal;
-        html += `<div class="categoria-bloque"><h3>${cat} (${grupo.length} corredores)</h3>
-            <div class="tabla-container"><table>
-            <thead><tr><th>Pos.</th><th>Dorsal</th><th>Nombre</th><th>Equipo</th><th>Evento</th><th>T. Real</th><th>Dif. Cat.</th></tr></thead><tbody>`;
-        grupo.forEach((l, i) => {
-            const dif = i === 0 ? '-' : `+${formatearTiempo(l.tiempoReal - primerReal)}`;
-            html += `<tr><td>${i+1}</td><td>#${l.dorsal}</td><td>${l.nombre}</td><td>${l.equipo||'-'}</td><td>${l.evento||'-'}</td><td>${l.tiempoRealFormateado}</td><td>${dif}</td></tr>`;
-        });
-        html += '</tbody></table></div></div>';
-    });
-    container.innerHTML = html;
+    // Ya no se renderiza visualmente, solo se usa para exportar
 }
 
 

@@ -401,6 +401,15 @@ function renderizarTabla() {
             </tr>`;
         });
     });
+    // Corredores sin registro -> mostrar como DNS
+    const dorsalesLlegados2 = llegadas.map(l => l.dorsal);
+    corredores.filter(c => !dorsalesLlegados2.includes(c.dorsal) && !estadosCorredor[c.dorsal]).forEach(c => {
+        html += `<tr style="opacity:0.6;">
+            <td></td><td>#${c.dorsal}</td><td>${c.nombre}</td>
+            <td>${c.equipo || '-'}</td><td>${c.categoria || '-'}</td><td>${c.evento || '-'}</td>
+            <td colspan="3" style="text-align:center;font-weight:bold;">DNS</td>
+        </tr>`;
+    });
 
     cuerpoTabla.innerHTML = html || '<tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>';
 }
@@ -495,9 +504,9 @@ function exportarCSV() {
             csv += `,${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}",${estado},${estado},-,-,-\n`;
         });
     });
-    // Corredores sin registro (ni tiempo ni estado)
+    // Corredores sin registro (ni tiempo ni estado) -> marcar como DNS
     corredores.filter(c => !dorsalesLlegados.includes(c.dorsal) && !estadosCorredor[c.dorsal]).forEach(c => {
-        csv += `,${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}",Sin registro,Sin registro,-,-,-\n`;
+        csv += `,${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}",DNS,DNS,-,-,-\n`;
     });
 
     let enc = `Carrera: ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\nTotal: ${corredores.length} | Llegaron: ${llegadas.length}\n\n`;

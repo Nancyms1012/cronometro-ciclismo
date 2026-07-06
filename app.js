@@ -535,9 +535,12 @@ function exportarPendientes() {
     const pendientes = corredores.filter(c => !dorsalesLlegados.includes(c.dorsal));
     if (pendientes.length === 0) { mostrarNotificacion('No hay pendientes', 'info'); return; }
     const nombre = inputNombreCarrera.value || 'Carrera';
-    let csv = `Corredores pendientes de llegada - ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\n\n`;
-    csv += 'Dorsal,Nombre,Equipo,Categoria,Evento\n';
-    pendientes.forEach(c => { csv += `${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}"\n`; });
+    let csv = `Corredores pendientes de llegada - ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\nTotal: ${pendientes.length}\n\n`;
+    csv += 'Dorsal,Nombre,Equipo,Categoria,Evento,Estado\n';
+    pendientes.forEach(c => {
+        const estado = estadosCorredor[c.dorsal] || '';
+        csv += `${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}",${estado}\n`;
+    });
     descargarCSV(csv, `pendientes_${nombre.replace(/\s+/g,'_')}`);
 }
 

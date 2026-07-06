@@ -604,7 +604,8 @@ function exportarPremiacion() {
 }
 
 function descargarCSV(csv, nombreArchivo) {
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `${nombreArchivo}_${new Date().toISOString().split('T')[0]}.csv`;

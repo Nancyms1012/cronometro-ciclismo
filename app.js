@@ -649,6 +649,134 @@ function descargarCSV(csv, nombreArchivo) {
     mostrarNotificacion('Archivo exportado', 'exito');
 }
 
+// --- Generar PDF Clasificacion General ---
+function generarPDFGeneral() {
+    if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('portrait', 'mm', 'letter');
+    const nombre = inputNombreCarrera.value || 'Carrera';
+
+    // Titulo
+    doc.setFontSize(18);
+    doc.setTextColor(200, 0, 0);
+    doc.setFont(undefined, 'bold');
+    doc.text(nombre.toUpperCase(), doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('CLASIFICACION GENERAL - TOTAL', doc.internal.pageSize.getWidth() / 2, 28, { align: 'center' });
+
+    // Datos de la tabla
+    const datos = llegadas.map((l, i) => [l.posicion, l.dorsal, l.nombre, l.categoria || '-', l.tiempoRealFormateado]);
+
+    // Agregar DNF, DNS, DSQ
+    const dorsalesLlegados = llegadas.map(l => l.dorsal);
+    const orden = ['DNF', 'DNS', 'DSQ'];
+    orden.forEach(estado => {
+        const conEstado = Object.keys(estadosCorredor).filter(d => estadosCorredor[d] === estado);
+        conEstado.forEach(dorsal => {
+            const c = corredores.find(x => x.dorsal === dorsal);
+            if (c) datos.push(['', c.dorsal, c.nombre, c.categoria || '-', estado]);
+        });
+    });
+    corredores.filter(c => !dorsalesLlegados.includes(c.dorsal) && !estadosCorredor[c.dorsal]).forEach(c => {
+        datos.push(['', c.dorsal, c.nombre, c.categoria || '-', 'DNS']);
+    });
+
+    doc.autoTable({
+        startY: 34,
+        head: [['Pos', 'Numero', 'Nombre Participante', 'Categoria', 'Tiempo']],
+        body: datos,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        columnStyles: { 0: { halign: 'center', cellWidth: 12 }, 1: { halign: 'center', cellWidth: 16 }, 4: { cellWidth: 28 } }
+    });
+
+    doc.save(`clasificacion_general_${nombre.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    mostrarNotificacion('PDF General generado', 'exito');
+}
+
+// --- Generar PDF por Categoria ---
+function generarPDFPorCategoria() {
+    if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('portrait', 'mm', 'letter');
+    const nombre = inputNombreCarrera.value || 'Carrera';
+
+    // Titulo primera pagina
+    doc.setFontSize(18);
+    doc.setTextColor(200, 0, 0);
+    doc.setFont(undefined, 'bold');
+    doc.text(nombre.toUpperCase(), doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('RESULTADOS FINALES', doc.internal.pageSize.getWidth() / 2, 28, { align: 'center' });
+
+    let startY = 36;
+
+    // Agrupar por categoria
+    const categorias = {};
+    llegadas.forEach(l => { const cat = l.categoria || 'Sin categoria'; if (!categorias[cat]) categorias[cat] = []; categorias[cat].push(l); });
+
+    // Agregar DNF por categoria
+    const dnfPorCat = {};
+    Object.keys(estadosCorredor).forEach(dorsal => {
+        if (estadosCorredor[dorsal] === 'DNF') {
+            const c = corredores.find(x => x.dorsal === dorsal);
+            if (c) {
+                const cat = c.categoria || 'Sin categoria';
+                if (!dnfPorCat[cat]) dnfPorCat[cat] = [];
+                dnfPorCat[cat].push(c);
+            }
+        }
+    });
+
+    const catKeys = Object.keys(categorias).sort();
+    catKeys.forEach((cat, catIdx) => {
+        const grupo = categorias[cat].slice().sort((a, b) => a.tiempoReal - b.tiempoReal);
+
+        // Verificar si hay espacio, si no, nueva pagina
+        const filasNecesarias = grupo.length + (dnfPorCat[cat] ? dnfPorCat[cat].length : 0) + 3;
+        if (startY + (filasNecesarias * 6) > 260) {
+            doc.addPage();
+            startY = 20;
+        }
+
+        // Titulo de categoria
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text(cat.toUpperCase(), 14, startY);
+        startY += 2;
+
+        // Datos
+        const datos = grupo.map((l, i) => [i + 1, l.dorsal, l.nombre, l.tiempoRealFormateado]);
+
+        // Agregar DNF de esta categoria
+        if (dnfPorCat[cat]) {
+            dnfPorCat[cat].forEach(c => {
+                datos.push(['', c.dorsal, c.nombre, 'DNF']);
+            });
+        }
+
+        doc.autoTable({
+            startY: startY,
+            head: [['Pos', 'Numero', 'Nombre Participante', 'Tiempo']],
+            body: datos,
+            styles: { fontSize: 8, cellPadding: 1.5 },
+            headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7 },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            columnStyles: { 0: { halign: 'center', cellWidth: 12 }, 1: { halign: 'center', cellWidth: 16 }, 3: { cellWidth: 28 } },
+            margin: { left: 14, right: 14 }
+        });
+
+        startY = doc.lastAutoTable.finalY + 8;
+    });
+
+    doc.save(`resultados_por_categoria_${nombre.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    mostrarNotificacion('PDF por Categoria generado', 'exito');
+}
+
 
 // --- Importar CSV ---
 function descargarPlantilla() {

@@ -651,9 +651,10 @@ function descargarCSV(csv, nombreArchivo) {
 
 // --- Generar PDF Clasificacion General ---
 function generarPDFGeneral() {
-    if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
-    if (!window.jspdf) { mostrarNotificacion('Error: libreria PDF no cargada. Verifica tu conexion a internet.', 'error'); return; }
-    const { jsPDF } = window.jspdf;
+    try {
+        if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
+        if (!window.jspdf) { alert('Error: la libreria jsPDF no se cargo. Necesitas conexion a internet.'); return; }
+        const { jsPDF } = window.jspdf;
     const doc = new jsPDF('portrait', 'mm', 'letter');
     const nombre = inputNombreCarrera.value || 'Carrera';
 
@@ -695,12 +696,14 @@ function generarPDFGeneral() {
 
     doc.save(`clasificacion_general_${nombre.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
     mostrarNotificacion('PDF General generado', 'exito');
+    } catch(e) { alert('Error PDF General: ' + e.message); }
 }
 
 // --- Generar PDF por Categoria ---
 function generarPDFPorCategoria() {
+    try {
     if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
-    if (!window.jspdf) { mostrarNotificacion('Error: libreria PDF no cargada. Verifica tu conexion a internet.', 'error'); return; }
+    if (!window.jspdf) { alert('Error: la libreria jsPDF no se cargo. Necesitas conexion a internet.'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('portrait', 'mm', 'letter');
     const nombre = inputNombreCarrera.value || 'Carrera';
@@ -777,6 +780,7 @@ function generarPDFPorCategoria() {
 
     doc.save(`resultados_por_categoria_${nombre.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
     mostrarNotificacion('PDF por Categoria generado', 'exito');
+    } catch(e) { alert('Error PDF Categoria: ' + e.message); }
 }
 
 

@@ -71,17 +71,21 @@
                     </div>
                     <p class="importar-ayuda">Formato: <strong>Dorsal, Nombre, Equipo, Categoria, Evento</strong></p>
                 </div>
-                <div id="lista-corredores" class="lista-corredores"></div>
-                <div class="buscar-corredor" style="margin-top:10px;padding:10px;background:#0d1b2a;border-radius:8px;">
+                <p class="contador" style="margin-top:10px;">Corredores registrados: <span id="total-corredores">0</span></p>
+                <!-- Buscar, editar, borrar -->
+                <div style="margin-top:12px;padding:12px;background:#0d1b2a;border-radius:8px;">
                     <div class="form-inline">
                         <div class="form-grupo">
-                            <label for="buscar-dorsal">Buscar por dorsal para editar:</label>
+                            <label for="buscar-dorsal">Buscar por dorsal:</label>
                             <input type="number" id="buscar-dorsal" placeholder="# Dorsal">
                         </div>
-                        <button class="btn btn-pausar" onclick="buscarYEditarCorredor()" style="font-size:0.85rem;">Buscar y Editar</button>
+                        <button class="btn btn-pausar" onclick="buscarYEditarCorredor()" style="font-size:0.85rem;">Editar</button>
+                        <button class="btn btn-reiniciar" onclick="buscarYBorrarCorredor()" style="font-size:0.85rem;">Borrar</button>
                     </div>
                 </div>
-                <p class="contador">Corredores registrados: <span id="total-corredores">0</span></p>
+                <div class="resultados-controles" style="margin-top:12px;">
+                    <button class="btn btn-exportar" onclick="exportarBaseDatos()">Exportar Base de Datos</button>
+                </div>
             </section>
 
             <!-- Seccion 3: Salidas escalonadas -->

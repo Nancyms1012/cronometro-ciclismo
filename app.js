@@ -25,7 +25,6 @@ const inputEquipo = document.getElementById('equipo');
 const inputCategoriaCorredor = document.getElementById('categoria-corredor');
 const inputEventoCorredor = document.getElementById('evento-corredor');
 const btnAgregarCorredor = document.getElementById('btn-agregar-corredor');
-const listaCorredores = document.getElementById('lista-corredores');
 const totalCorredores = document.getElementById('total-corredores');
 const tiempoDisplay = document.getElementById('tiempo-display');
 const btnIniciar = document.getElementById('btn-iniciar');
@@ -199,20 +198,6 @@ function eliminarCorredor(dorsal) {
 }
 
 function renderizarCorredores() {
-    if (corredores.length === 0) {
-        listaCorredores.innerHTML = '<p class="placeholder-text">No hay corredores registrados</p>';
-    } else {
-        listaCorredores.innerHTML = corredores.map(c => `
-            <div class="corredor-item">
-                <span class="dorsal">#${c.dorsal}</span>
-                <span class="nombre">${c.nombre}</span>
-                ${c.equipo ? `<span class="equipo-tag">${c.equipo}</span>` : ''}
-                ${c.categoria ? `<span class="categoria-tag">${c.categoria}</span>` : ''}
-                ${c.evento ? `<span class="evento-tag">${c.evento}</span>` : ''}
-                <button class="btn-editar" onclick="editarCorredor('${c.dorsal}')">Editar</button>
-                <button class="btn-eliminar" onclick="eliminarCorredor('${c.dorsal}')">X</button>
-            </div>`).join('');
-    }
     totalCorredores.textContent = corredores.length;
 }
 
@@ -254,6 +239,41 @@ function buscarYEditarCorredor() {
     if (!corredor) { mostrarNotificacion(`No existe corredor con dorsal #${dorsal}`, 'error'); return; }
     document.getElementById('buscar-dorsal').value = '';
     editarCorredor(dorsal);
+}
+
+function buscarYBorrarCorredor() {
+    const dorsal = document.getElementById('buscar-dorsal').value.trim();
+    if (!dorsal) { mostrarNotificacion('Ingresa un numero de dorsal', 'error'); return; }
+    const corredor = corredores.find(c => c.dorsal === dorsal);
+    if (!corredor) { mostrarNotificacion(`No existe corredor con dorsal #${dorsal}`, 'error'); return; }
+    if (!confirm(`Borrar corredor #${dorsal} ${corredor.nombre}? Esto tambien elimina su llegada si la tiene.`)) return;
+
+    // Eliminar de corredores
+    corredores = corredores.filter(c => c.dorsal !== dorsal);
+    // Eliminar de llegadas si existe
+    const idxLlegada = llegadas.findIndex(l => l.dorsal === dorsal);
+    if (idxLlegada !== -1) {
+        llegadas.splice(idxLlegada, 1);
+        llegadas.forEach((l, i) => { l.posicion = i + 1; });
+    }
+    // Eliminar estado si existe
+    delete estadosCorredor[dorsal];
+
+    document.getElementById('buscar-dorsal').value = '';
+    renderizarCorredores(); renderizarTabla(); renderizarPendientes();
+    actualizarDatalists(); renderizarSalidas();
+    renderizarResultadosCategoria(); renderizarPremiacion();
+    mostrarNotificacion(`Corredor #${dorsal} ${corredor.nombre} eliminado completamente`, 'info');
+}
+
+function exportarBaseDatos() {
+    if (corredores.length === 0) { mostrarNotificacion('No hay corredores registrados', 'error'); return; }
+    const nombre = inputNombreCarrera.value || 'Carrera';
+    let csv = 'Dorsal,Nombre,Equipo,Categoria,Evento\n';
+    corredores.forEach(c => {
+        csv += `${c.dorsal},"${c.nombre}","${c.equipo || ''}","${c.categoria || ''}","${c.evento || ''}"\n`;
+    });
+    descargarCSV(csv, `base_datos_corredores_${nombre.replace(/\s+/g, '_')}`);
 }
 
 

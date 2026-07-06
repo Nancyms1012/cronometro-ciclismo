@@ -652,6 +652,7 @@ function descargarCSV(csv, nombreArchivo) {
 // --- Generar PDF Clasificacion General ---
 function generarPDFGeneral() {
     if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
+    if (!window.jspdf) { mostrarNotificacion('Error: libreria PDF no cargada. Verifica tu conexion a internet.', 'error'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('portrait', 'mm', 'letter');
     const nombre = inputNombreCarrera.value || 'Carrera';
@@ -699,6 +700,7 @@ function generarPDFGeneral() {
 // --- Generar PDF por Categoria ---
 function generarPDFPorCategoria() {
     if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }
+    if (!window.jspdf) { mostrarNotificacion('Error: libreria PDF no cargada. Verifica tu conexion a internet.', 'error'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('portrait', 'mm', 'letter');
     const nombre = inputNombreCarrera.value || 'Carrera';

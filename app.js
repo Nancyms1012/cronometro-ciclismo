@@ -33,7 +33,6 @@ const btnPausar = document.getElementById('btn-pausar');
 const btnReiniciar = document.getElementById('btn-reiniciar');
 const inputDorsalLlegada = document.getElementById('dorsal-llegada');
 const btnRegistrarLlegada = document.getElementById('btn-registrar-llegada');
-const botonesRapidos = document.getElementById('botones-rapidos');
 const cuerpoTabla = document.getElementById('cuerpo-tabla');
 const btnExportar = document.getElementById('btn-exportar');
 const numPendientes = document.getElementById('num-pendientes');
@@ -104,18 +103,48 @@ function getTiempoReal(llegada) {
 function renderizarSalidas() {
     const container = document.getElementById('salidas-container');
     const cats = obtenerCategorias();
-    if (cats.length === 0) {
-        container.innerHTML = '<p class="placeholder-text">Registra corredores con categorias para configurar salidas</p>';
+    const selectSalida = document.getElementById('select-cat-salida');
+
+    // Actualizar select multiple
+    if (selectSalida) {
+        selectSalida.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    }
+
+    // Mostrar salidas ya registradas
+    const registradas = Object.keys(salidasDesfase).filter(cat => salidasDesfase[cat] > 0);
+    if (registradas.length === 0) {
+        container.innerHTML = '<p class="placeholder-text">No hay salidas registradas. Selecciona categorias y presiona "Marcar salida AHORA".</p>';
         return;
     }
-    container.innerHTML = cats.map(cat => {
-        const valor = salidasDesfase[cat] || 0;
+    container.innerHTML = registradas.map(cat => {
+        const minutos = salidasDesfase[cat];
+        const h = Math.floor(minutos / 60);
+        const m = minutos % 60;
         return `<div class="salida-item">
-            <label>${cat}</label>
-            <input type="number" min="0" value="${valor}" onchange="actualizarDesfase('${cat}', this.value)" placeholder="0">
-            <span class="desfase-info">min despues del crono</span>
+            <span class="cat-nombre">${cat}</span>
+            <span class="hora-salida">+${minutos} min</span>
+            <span class="desfase-info">(desfase desde inicio del crono)</span>
         </div>`;
     }).join('');
+}
+
+function marcarSalidaAhora() {
+    if (!tiempoInicio) {
+        mostrarNotificacion('Primero inicia el cronometro', 'error');
+        return;
+    }
+    const selectSalida = document.getElementById('select-cat-salida');
+    const seleccionadas = Array.from(selectSalida.selectedOptions).map(o => o.value);
+    if (seleccionadas.length === 0) {
+        mostrarNotificacion('Selecciona al menos una categoria', 'error');
+        return;
+    }
+    const minutosDesdeInicio = Math.round((Date.now() - tiempoInicio) / 60000);
+    seleccionadas.forEach(cat => {
+        salidasDesfase[cat] = minutosDesdeInicio;
+    });
+    renderizarSalidas();
+    mostrarNotificacion(`Salida registrada para: ${seleccionadas.join(', ')} (+${minutosDesdeInicio} min)`, 'exito');
 }
 
 function actualizarDesfase(cat, valor) {
@@ -180,10 +209,42 @@ function renderizarCorredores() {
                 ${c.equipo ? `<span class="equipo-tag">${c.equipo}</span>` : ''}
                 ${c.categoria ? `<span class="categoria-tag">${c.categoria}</span>` : ''}
                 ${c.evento ? `<span class="evento-tag">${c.evento}</span>` : ''}
+                <button class="btn-editar" onclick="editarCorredor('${c.dorsal}')">Editar</button>
                 <button class="btn-eliminar" onclick="eliminarCorredor('${c.dorsal}')">X</button>
             </div>`).join('');
     }
     totalCorredores.textContent = corredores.length;
+}
+
+function editarCorredor(dorsal) {
+    const corredor = corredores.find(c => c.dorsal === dorsal);
+    if (!corredor) return;
+    const nuevoNombre = prompt('Nombre:', corredor.nombre);
+    if (nuevoNombre === null) return;
+    const nuevoEquipo = prompt('Equipo:', corredor.equipo);
+    if (nuevoEquipo === null) return;
+    const nuevaCategoria = prompt('Categoria:', corredor.categoria);
+    if (nuevaCategoria === null) return;
+    const nuevoEvento = prompt('Evento:', corredor.evento);
+    if (nuevoEvento === null) return;
+
+    corredor.nombre = nuevoNombre || corredor.nombre;
+    corredor.equipo = nuevoEquipo;
+    corredor.categoria = nuevaCategoria;
+    corredor.evento = nuevoEvento;
+
+    // Actualizar tambien en llegadas si ya cruzo la meta
+    const llegada = llegadas.find(l => l.dorsal === dorsal);
+    if (llegada) {
+        llegada.nombre = corredor.nombre;
+        llegada.equipo = corredor.equipo;
+        llegada.categoria = corredor.categoria;
+        llegada.evento = corredor.evento;
+    }
+
+    renderizarCorredores(); renderizarTabla(); actualizarDatalists();
+    renderizarResultadosCategoria(); renderizarPremiacion(); renderizarSalidas();
+    mostrarNotificacion(`Corredor #${dorsal} actualizado`, 'exito');
 }
 
 
@@ -294,24 +355,9 @@ function renderizarPendientes() {
     numPendientes.textContent = enRuta.length;
 }
 
-// --- Botones rapidos (solo en ruta, ordenados) ---
+// --- Botones rapidos removidos (se usa solo dorsal) ---
 function renderizarBotonesRapidos() {
-    const dorsalesLlegados = llegadas.map(l => l.dorsal);
-    const pendientes = corredores.filter(c => {
-        if (corredoresQueSalieron && !corredoresQueSalieron.includes(c.dorsal)) return false;
-        if (estadosCorredor[c.dorsal]) return false;
-        if (dorsalesLlegados.includes(c.dorsal)) return false;
-        return true;
-    }).sort((a, b) => Number(a.dorsal) - Number(b.dorsal));
-
-    if (pendientes.length === 0) {
-        botonesRapidos.innerHTML = '<p class="botones-rapidos-titulo">Todos han llegado o fueron marcados</p>';
-        return;
-    }
-    botonesRapidos.innerHTML = '<p class="botones-rapidos-titulo">Toque rapido (en ruta, ordenados):</p>';
-    botonesRapidos.innerHTML += pendientes.map(c =>
-        `<button class="btn-dorsal-rapido" onclick="registrarLlegadaRapida('${c.dorsal}')" title="${c.nombre} - ${c.categoria || ''}">${c.dorsal}</button>`
-    ).join('');
+    // No se usan bolitas en esta version
 }
 
 // --- Resultados por categoria ---
@@ -645,6 +691,65 @@ function confirmarImportacion(modo) {
     mostrarNotificacion(msg, 'exito');
 }
 
+
+// --- Eliminar llegada erronea ---
+function eliminarLlegada() {
+    const dorsal = document.getElementById('dorsal-corregir').value.trim();
+    if (!dorsal) { mostrarNotificacion('Ingresa un dorsal', 'error'); return; }
+    const idx = llegadas.findIndex(l => l.dorsal === dorsal);
+    if (idx === -1) { mostrarNotificacion(`#${dorsal} no tiene llegada registrada`, 'error'); return; }
+    if (!confirm(`Eliminar llegada de #${dorsal} ${llegadas[idx].nombre}?`)) return;
+    llegadas.splice(idx, 1);
+    // Recalcular posiciones
+    llegadas.forEach((l, i) => { l.posicion = i + 1; });
+    document.getElementById('dorsal-corregir').value = '';
+    renderizarTabla(); renderizarPendientes(); renderizarResultadosCategoria(); renderizarPremiacion();
+    mostrarNotificacion(`Llegada de #${dorsal} eliminada`, 'info');
+}
+
+// --- Modificar tiempo de un corredor ---
+function modificarTiempo() {
+    const dorsal = document.getElementById('dorsal-mod-tiempo').value.trim();
+    const nuevoTiempoStr = document.getElementById('nuevo-tiempo').value.trim();
+    if (!dorsal || !nuevoTiempoStr) { mostrarNotificacion('Ingresa dorsal y nuevo tiempo', 'error'); return; }
+    const llegada = llegadas.find(l => l.dorsal === dorsal);
+    if (!llegada) { mostrarNotificacion(`#${dorsal} no tiene llegada registrada`, 'error'); return; }
+    // Parsear tiempo HH:MM:SS.mmm o MM:SS.mmm
+    const nuevoMs = parsearTiempoStr(nuevoTiempoStr);
+    if (nuevoMs === null) { mostrarNotificacion('Formato invalido. Usa HH:MM:SS.mmm o MM:SS.mmm', 'error'); return; }
+
+    llegada.tiempo = nuevoMs;
+    llegada.tiempoFormateado = formatearTiempo(nuevoMs);
+    const desfase = getDesfaseCategoria(llegada.categoria);
+    llegada.tiempoReal = nuevoMs - desfase;
+    llegada.tiempoRealFormateado = formatearTiempo(llegada.tiempoReal);
+
+    document.getElementById('dorsal-mod-tiempo').value = '';
+    document.getElementById('nuevo-tiempo').value = '';
+    renderizarTabla(); renderizarResultadosCategoria(); renderizarPremiacion();
+    mostrarNotificacion(`Tiempo de #${dorsal} actualizado a ${llegada.tiempoFormateado}`, 'exito');
+}
+
+function parsearTiempoStr(str) {
+    // Acepta HH:MM:SS.mmm, HH:MM:SS, MM:SS.mmm, MM:SS
+    const partes = str.split(':');
+    let h = 0, m = 0, s = 0, ms = 0;
+    if (partes.length === 3) {
+        h = parseInt(partes[0]) || 0;
+        m = parseInt(partes[1]) || 0;
+        const sp = partes[2].split('.');
+        s = parseInt(sp[0]) || 0;
+        ms = parseInt((sp[1] || '0').padEnd(3, '0').slice(0, 3)) || 0;
+    } else if (partes.length === 2) {
+        m = parseInt(partes[0]) || 0;
+        const sp = partes[1].split('.');
+        s = parseInt(sp[0]) || 0;
+        ms = parseInt((sp[1] || '0').padEnd(3, '0').slice(0, 3)) || 0;
+    } else {
+        return null;
+    }
+    return h * 3600000 + m * 60000 + s * 1000 + ms;
+}
 
 // --- Lista de Salida y Estados (DNS/DNF/DSQ) ---
 function importarListaSalida() {

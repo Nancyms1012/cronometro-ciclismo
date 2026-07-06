@@ -7,192 +7,224 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Cronometro Ciclismo</h1>
-            <p class="subtitle">Registro de tiempos de competencia</p>
-        </header>
+    <div class="layout-container">
+        <!-- PANEL IZQUIERDO: Configuracion y registro -->
+        <div class="panel-izquierdo">
+            <header>
+                <h1>Cronometro Ciclismo</h1>
+                <p class="subtitle">Registro de tiempos de competencia</p>
+            </header>
 
-        <!-- Seccion 1: Configuracion del Evento -->
-        <section class="seccion">
-            <h2>1. Configuracion del Evento</h2>
-            <div class="form-grupo">
-                <label for="nombre-carrera">Nombre del evento:</label>
-                <input type="text" id="nombre-carrera" placeholder="Ej: Gran Fondo 2026">
-            </div>
-            <div class="form-grupo">
-                <label for="distancia">Distancia (km):</label>
-                <input type="number" id="distancia" placeholder="Ej: 120">
-            </div>
-            <div class="form-grupo">
-                <label for="eventos">Eventos simultaneos (separar con coma):</label>
-                <input type="text" id="eventos" placeholder="Ej: Reto, Endurance">
-            </div>
-            <p class="instruccion">Los eventos simultaneos se configuran aqui. Las categorias se asignan a cada corredor.</p>
-            <div class="config-acciones">
-                <button class="btn btn-reiniciar" onclick="nuevaCompetencia()">NUEVA COMPETENCIA (borrar todo)</button>
-            </div>
-        </section>
-
-        <!-- Seccion 2: Registro de corredores -->
-        <section class="seccion">
-            <h2>2. Registrar Corredores</h2>
-            <div class="form-inline">
+            <!-- Seccion 1: Configuracion del Evento -->
+            <section class="seccion">
+                <h2>1. Configuracion del Evento</h2>
                 <div class="form-grupo">
-                    <label for="dorsal">Dorsal #:</label>
-                    <input type="number" id="dorsal" placeholder="1">
+                    <label for="nombre-carrera">Nombre del evento:</label>
+                    <input type="text" id="nombre-carrera" placeholder="Ej: Gran Fondo 2026">
                 </div>
                 <div class="form-grupo">
-                    <label for="nombre-corredor">Nombre:</label>
-                    <input type="text" id="nombre-corredor" placeholder="Nombre del corredor">
+                    <label for="distancia">Distancia (km):</label>
+                    <input type="number" id="distancia" placeholder="Ej: 120">
                 </div>
                 <div class="form-grupo">
-                    <label for="equipo">Equipo:</label>
-                    <input type="text" id="equipo" placeholder="Equipo (opcional)">
+                    <label for="eventos">Eventos simultaneos (separar con coma):</label>
+                    <input type="text" id="eventos" placeholder="Ej: Reto, Endurance">
                 </div>
-                <div class="form-grupo">
-                    <label for="categoria-corredor">Categoria:</label>
-                    <input type="text" id="categoria-corredor" placeholder="Ej: Elite, Master" list="lista-categorias">
-                    <datalist id="lista-categorias"></datalist>
+                <div class="config-acciones">
+                    <button class="btn btn-reiniciar" onclick="nuevaCompetencia()">NUEVA COMPETENCIA (borrar todo)</button>
                 </div>
-                <div class="form-grupo">
-                    <label for="evento-corredor">Evento:</label>
-                    <input type="text" id="evento-corredor" placeholder="Ej: Reto" list="lista-eventos">
-                    <datalist id="lista-eventos"></datalist>
+            </section>
+
+            <!-- Seccion 2: Registro de corredores -->
+            <section class="seccion">
+                <h2>2. Registrar Corredores</h2>
+                <div class="form-inline">
+                    <div class="form-grupo">
+                        <label for="dorsal">Dorsal #:</label>
+                        <input type="number" id="dorsal" placeholder="1">
+                    </div>
+                    <div class="form-grupo">
+                        <label for="nombre-corredor">Nombre:</label>
+                        <input type="text" id="nombre-corredor" placeholder="Nombre del corredor">
+                    </div>
+                    <div class="form-grupo">
+                        <label for="equipo">Equipo:</label>
+                        <input type="text" id="equipo" placeholder="Equipo (opcional)">
+                    </div>
+                    <div class="form-grupo">
+                        <label for="categoria-corredor">Categoria:</label>
+                        <input type="text" id="categoria-corredor" placeholder="Ej: Elite, Master" list="lista-categorias">
+                        <datalist id="lista-categorias"></datalist>
+                    </div>
+                    <div class="form-grupo">
+                        <label for="evento-corredor">Evento:</label>
+                        <input type="text" id="evento-corredor" placeholder="Ej: Reto" list="lista-eventos">
+                        <datalist id="lista-eventos"></datalist>
+                    </div>
+                    <button id="btn-agregar-corredor" class="btn btn-agregar">+ Agregar</button>
                 </div>
-                <button id="btn-agregar-corredor" class="btn btn-agregar">+ Agregar</button>
-            </div>
-            <div class="importar-seccion">
-                <div class="importar-header">
-                    <button class="btn btn-importar" onclick="document.getElementById('archivo-csv').click()">Importar desde CSV</button>
-                    <button class="btn btn-plantilla" onclick="descargarPlantilla()">Descargar plantilla</button>
-                    <input type="file" id="archivo-csv" accept=".csv,.xls,.xlsx" style="display:none">
+                <div class="importar-seccion">
+                    <div class="importar-header">
+                        <button class="btn btn-importar" onclick="document.getElementById('archivo-csv').click()">Importar desde CSV</button>
+                        <button class="btn btn-plantilla" onclick="descargarPlantilla()">Descargar plantilla</button>
+                        <input type="file" id="archivo-csv" accept=".csv,.xls,.xlsx" style="display:none">
+                    </div>
+                    <p class="importar-ayuda">Formato: <strong>Dorsal, Nombre, Equipo, Categoria, Evento</strong></p>
                 </div>
-                <p class="importar-ayuda">Formato: <strong>Dorsal, Nombre, Equipo, Categoria, Evento</strong> (coma o punto y coma)</p>
-            </div>
-            <div id="lista-corredores" class="lista-corredores"></div>
-            <p class="contador">Corredores registrados: <span id="total-corredores">0</span></p>
-        </section>
+                <div id="lista-corredores" class="lista-corredores"></div>
+                <p class="contador">Corredores registrados: <span id="total-corredores">0</span></p>
+            </section>
 
-        <!-- Seccion 3: Salidas escalonadas -->
-        <section class="seccion">
-            <h2>3. Horarios de Salida por Categoria</h2>
-            <p class="instruccion">Configura el desfase en minutos respecto al inicio del cronometro. Ej: si el crono arranca a las 7:30 y una categoria sale a las 8:00, su desfase es 30 min.</p>
-            <div id="salidas-container"></div>
-            <button class="btn btn-agregar" onclick="renderizarSalidas()">Actualizar categorias</button>
-        </section>
-
-        <!-- Seccion 4: Cronometro -->
-        <section class="seccion">
-            <h2>4. Cronometro de Carrera</h2>
-            <div class="cronometro-display">
-                <span id="tiempo-display">00:00:00.000</span>
-            </div>
-            <div class="cronometro-controles">
-                <button id="btn-iniciar" class="btn btn-iniciar">INICIAR CARRERA</button>
-                <button id="btn-pausar" class="btn btn-pausar" disabled>PAUSAR</button>
-                <button id="btn-reiniciar" class="btn btn-reiniciar" disabled>REINICIAR TIEMPOS</button>
-            </div>
-        </section>
-
-        <!-- Seccion 5: Registro de llegadas -->
-        <section class="seccion">
-            <h2>5. Registrar Llegadas</h2>
-            <p class="instruccion">Ingresa el dorsal o toca el boton del corredor que cruza la meta.</p>
-            <div class="form-inline llegada-form">
-                <div class="form-grupo">
-                    <label for="dorsal-llegada">Dorsal #:</label>
-                    <input type="number" id="dorsal-llegada" placeholder="Dorsal">
+            <!-- Seccion 3: Salidas escalonadas -->
+            <section class="seccion">
+                <h2>3. Horarios de Salida</h2>
+                <p class="instruccion">Selecciona las categorias que van a salir y presiona "Marcar salida AHORA" para registrar la hora exacta de salida.</p>
+                <div class="form-inline" style="margin-bottom:15px;">
+                    <div class="form-grupo">
+                        <label for="select-cat-salida">Categorias a dar salida:</label>
+                        <select id="select-cat-salida" multiple size="4" style="height:auto;">
+                        </select>
+                    </div>
+                    <button class="btn btn-iniciar" onclick="marcarSalidaAhora()" style="font-size:0.9rem;padding:10px 15px;">MARCAR SALIDA AHORA</button>
                 </div>
-                <button id="btn-registrar-llegada" class="btn btn-llegada" disabled>REGISTRAR LLEGADA</button>
-            </div>
-            <div class="contador-pendientes">
-                <span class="pendientes-numero" id="num-pendientes">0</span> corredores por llegar
-            </div>
-            <div id="botones-rapidos" class="botones-rapidos"></div>
-        </section>
+                <div id="salidas-container"></div>
+            </section>
 
-        <!-- Seccion 6: Clasificacion General -->
-        <section class="seccion">
-            <h2>6. Control de Carrera (DNS / DNF / DSQ)</h2>
-            <p class="instruccion">Importa la lista de dorsales que realmente salieron, o marca individualmente los que abandonaron (DNF), no salieron (DNS) o fueron descalificados (DSQ).</p>
-            <div class="resultados-controles">
-                <button class="btn btn-importar" onclick="importarListaSalida()">Importar Lista de Salida (CSV)</button>
-                <input type="file" id="archivo-salida" accept=".csv,.txt" style="display:none" onchange="procesarListaSalida(event)">
-            </div>
-            <div class="form-inline" style="margin-top:15px;">
-                <div class="form-grupo">
-                    <label for="dorsal-estado">Dorsal #:</label>
-                    <input type="number" id="dorsal-estado" placeholder="Dorsal">
+            <!-- Seccion 4: Cronometro -->
+            <section class="seccion">
+                <h2>4. Cronometro de Carrera</h2>
+                <div class="cronometro-display">
+                    <span id="tiempo-display">00:00:00.000</span>
                 </div>
-                <button class="btn btn-reiniciar" onclick="marcarEstado('DNF')" style="font-size:0.85rem;">DNF (Abandono)</button>
-                <button class="btn btn-pausar" onclick="marcarEstado('DNS')" style="font-size:0.85rem;">DNS (No salio)</button>
-                <button class="btn btn-exportar" onclick="marcarEstado('DSQ')" style="font-size:0.85rem;background:#8e44ad;">DSQ (Descalificado)</button>
-            </div>
-            <div id="lista-estados" style="margin-top:15px;max-height:200px;overflow-y:auto;">
-                <p class="placeholder-text">No hay corredores marcados</p>
-            </div>
-        </section>
+                <div class="cronometro-controles">
+                    <button id="btn-iniciar" class="btn btn-iniciar">INICIAR CARRERA</button>
+                    <button id="btn-pausar" class="btn btn-pausar" disabled>PAUSAR</button>
+                    <button id="btn-reiniciar" class="btn btn-reiniciar" disabled>REINICIAR TIEMPOS</button>
+                </div>
+            </section>
 
-        <!-- Seccion 7: Clasificacion General -->
-        <section class="seccion">
-            <h2>7. Clasificacion General</h2>
-            <div class="resultados-controles">
-                <button id="btn-exportar" class="btn btn-exportar">Exportar General CSV</button>
-                <select id="select-evento-exportar" class="select-evento">
-                    <option value="todos">-- Todos los eventos --</option>
-                </select>
-                <button class="btn btn-exportar" onclick="exportarEventoSeleccionado()">Exportar Evento</button>
-                <button class="btn btn-exportar" onclick="exportarPendientes()">Exportar Pendientes</button>
-            </div>
-            <div class="tabla-scroll-container">
-                <table id="tabla-resultados">
-                    <thead>
-                        <tr>
-                            <th>Pos.</th>
-                            <th>Dorsal</th>
-                            <th>Nombre</th>
-                            <th>Equipo</th>
-                            <th>Categoria</th>
-                            <th>Evento</th>
-                            <th>Tiempo Crono</th>
-                            <th>Tiempo Real</th>
-                            <th>Dif. General</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpo-tabla">
-                        <tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Seccion 5: Registro de llegadas (solo dorsal, sin bolitas) -->
+            <section class="seccion">
+                <h2>5. Registrar Llegadas</h2>
+                <div class="form-inline llegada-form">
+                    <div class="form-grupo">
+                        <label for="dorsal-llegada">Dorsal #:</label>
+                        <input type="number" id="dorsal-llegada" placeholder="Dorsal">
+                    </div>
+                    <button id="btn-registrar-llegada" class="btn btn-llegada" disabled>REGISTRAR LLEGADA</button>
+                </div>
+                <div class="contador-pendientes">
+                    <span class="pendientes-numero" id="num-pendientes">0</span> corredores en ruta
+                </div>
+            </section>
 
-        <!-- Seccion 7: Premiacion (ANTES de resultados por categoria) -->
-        <section class="seccion">
-            <h2>8. Premiacion - Top 5 por Categoria</h2>
-            <p class="instruccion">Solo se muestran las categorias <span style="color:#27ae60;font-weight:bold;">LISTAS PARA PREMIAR</span> (ya llegaron los 5 primeros o todos los de la categoria).</p>
-            <div class="resultados-controles">
-                <button class="btn btn-exportar" onclick="exportarPremiacion()">Exportar Premiacion CSV</button>
-            </div>
-            <div id="premiacion-container"></div>
-        </section>
+            <!-- Seccion 6: Control de Carrera -->
+            <section class="seccion">
+                <h2>6. Control de Carrera (DNS / DNF / DSQ)</h2>
+                <div class="resultados-controles">
+                    <button class="btn btn-importar" onclick="importarListaSalida()">Importar Lista de Salida (CSV)</button>
+                    <input type="file" id="archivo-salida" accept=".csv,.txt" style="display:none" onchange="procesarListaSalida(event)">
+                </div>
+                <div class="form-inline" style="margin-top:15px;">
+                    <div class="form-grupo">
+                        <label for="dorsal-estado">Dorsal #:</label>
+                        <input type="number" id="dorsal-estado" placeholder="Dorsal">
+                    </div>
+                    <button class="btn btn-reiniciar" onclick="marcarEstado('DNF')" style="font-size:0.85rem;">DNF</button>
+                    <button class="btn btn-pausar" onclick="marcarEstado('DNS')" style="font-size:0.85rem;">DNS</button>
+                    <button class="btn btn-exportar" onclick="marcarEstado('DSQ')" style="font-size:0.85rem;background:#8e44ad;">DSQ</button>
+                </div>
+                <div id="lista-estados" style="margin-top:10px;max-height:150px;overflow-y:auto;">
+                    <p class="placeholder-text">No hay corredores marcados</p>
+                </div>
+            </section>
+        </div>
 
-        <!-- Seccion 8: Resultados por Categoria -->
-        <section class="seccion">
-            <h2>9. Resultados por Categoria</h2>
-            <div class="filtro-categoria">
-                <label for="filtro-cat">Filtrar:</label>
-                <select id="filtro-cat" onchange="renderizarResultadosCategoria()">
-                    <option value="todas">-- Todas --</option>
-                </select>
-                <button class="btn btn-exportar" onclick="exportarPorCategoria()">Exportar por Categoria</button>
-                <select id="select-evento-exportar-cat" class="select-evento">
-                    <option value="todos">-- Todos los eventos --</option>
-                </select>
-                <button class="btn btn-exportar" onclick="exportarEventoSeleccionadoCat()">Exportar Evento</button>
-            </div>
-            <div id="resultados-por-categoria"></div>
-        </section>
+        <!-- PANEL DERECHO: Resultados y premiacion -->
+        <div class="panel-derecho">
+            <!-- Correccion de llegadas -->
+            <section class="seccion">
+                <h2>Correcciones de Llegada</h2>
+                <p class="instruccion">Eliminar una llegada erronea o modificar el tiempo de un corredor.</p>
+                <div class="form-inline">
+                    <div class="form-grupo">
+                        <label for="dorsal-corregir">Dorsal #:</label>
+                        <input type="number" id="dorsal-corregir" placeholder="Dorsal">
+                    </div>
+                    <button class="btn btn-reiniciar" onclick="eliminarLlegada()" style="font-size:0.85rem;">Eliminar llegada</button>
+                </div>
+                <div class="form-inline" style="margin-top:10px;">
+                    <div class="form-grupo">
+                        <label for="dorsal-mod-tiempo">Dorsal #:</label>
+                        <input type="number" id="dorsal-mod-tiempo" placeholder="Dorsal">
+                    </div>
+                    <div class="form-grupo">
+                        <label for="nuevo-tiempo">Nuevo tiempo (HH:MM:SS.mmm):</label>
+                        <input type="text" id="nuevo-tiempo" placeholder="00:45:30.000">
+                    </div>
+                    <button class="btn btn-pausar" onclick="modificarTiempo()" style="font-size:0.85rem;">Modificar tiempo</button>
+                </div>
+            </section>
+
+            <!-- Clasificacion General -->
+            <section class="seccion">
+                <h2>7. Clasificacion General</h2>
+                <div class="resultados-controles">
+                    <button id="btn-exportar" class="btn btn-exportar">Exportar General CSV</button>
+                    <select id="select-evento-exportar" class="select-evento">
+                        <option value="todos">-- Todos los eventos --</option>
+                    </select>
+                    <button class="btn btn-exportar" onclick="exportarEventoSeleccionado()">Exportar Evento</button>
+                    <button class="btn btn-exportar" onclick="exportarPendientes()">Exportar Pendientes</button>
+                </div>
+                <div class="tabla-scroll-container">
+                    <table id="tabla-resultados">
+                        <thead>
+                            <tr>
+                                <th>Pos.</th>
+                                <th>Dorsal</th>
+                                <th>Nombre</th>
+                                <th>Equipo</th>
+                                <th>Categoria</th>
+                                <th>Evento</th>
+                                <th>T. Crono</th>
+                                <th>T. Real</th>
+                                <th>Dif.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla">
+                            <tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Premiacion -->
+            <section class="seccion">
+                <h2>8. Premiacion - Top 5 por Categoria</h2>
+                <div class="resultados-controles">
+                    <button class="btn btn-exportar" onclick="exportarPremiacion()">Exportar Premiacion CSV</button>
+                </div>
+                <div id="premiacion-container"></div>
+            </section>
+
+            <!-- Resultados por Categoria -->
+            <section class="seccion">
+                <h2>9. Resultados por Categoria</h2>
+                <div class="filtro-categoria">
+                    <label for="filtro-cat">Filtrar:</label>
+                    <select id="filtro-cat" onchange="renderizarResultadosCategoria()">
+                        <option value="todas">-- Todas --</option>
+                    </select>
+                    <button class="btn btn-exportar" onclick="exportarPorCategoria()">Exportar Categoria</button>
+                    <select id="select-evento-exportar-cat" class="select-evento">
+                        <option value="todos">-- Todos --</option>
+                    </select>
+                    <button class="btn btn-exportar" onclick="exportarEventoSeleccionadoCat()">Exportar Evento</button>
+                </div>
+                <div id="resultados-por-categoria"></div>
+            </section>
+        </div>
     </div>
 
     <script src="app.js"></script>

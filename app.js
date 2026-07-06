@@ -218,7 +218,7 @@ function renderizarCorredores() {
 
 function editarCorredor(dorsal) {
     const corredor = corredores.find(c => c.dorsal === dorsal);
-    if (!corredor) return;
+    if (!corredor) { mostrarNotificacion(`No existe dorsal #${dorsal}`, 'error'); return; }
     const nuevoNombre = prompt('Nombre:', corredor.nombre);
     if (nuevoNombre === null) return;
     const nuevoEquipo = prompt('Equipo:', corredor.equipo);
@@ -245,6 +245,15 @@ function editarCorredor(dorsal) {
     renderizarCorredores(); renderizarTabla(); actualizarDatalists();
     renderizarResultadosCategoria(); renderizarPremiacion(); renderizarSalidas();
     mostrarNotificacion(`Corredor #${dorsal} actualizado`, 'exito');
+}
+
+function buscarYEditarCorredor() {
+    const dorsal = document.getElementById('buscar-dorsal').value.trim();
+    if (!dorsal) { mostrarNotificacion('Ingresa un numero de dorsal', 'error'); return; }
+    const corredor = corredores.find(c => c.dorsal === dorsal);
+    if (!corredor) { mostrarNotificacion(`No existe corredor con dorsal #${dorsal}`, 'error'); return; }
+    document.getElementById('buscar-dorsal').value = '';
+    editarCorredor(dorsal);
 }
 
 

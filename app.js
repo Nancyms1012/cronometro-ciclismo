@@ -373,12 +373,12 @@ function refrescarResultados() {
 
 // --- Tabla general ---
 function renderizarTabla() {
-    if (llegadas.length === 0) {
+    if (llegadas.length === 0 && Object.keys(estadosCorredor).length === 0) {
         cuerpoTabla.innerHTML = '<tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>';
         return;
     }
-    const primerTiempo = llegadas[0].tiempo;
-    cuerpoTabla.innerHTML = llegadas.map((l, i) => {
+    const primerTiempo = llegadas.length > 0 ? llegadas[0].tiempo : 0;
+    let html = llegadas.map((l, i) => {
         const dif = i === 0 ? '-' : `+${formatearTiempo(l.tiempo - primerTiempo)}`;
         return `<tr>
             <td>${l.posicion}</td><td>#${l.dorsal}</td><td>${l.nombre}</td>
@@ -386,6 +386,23 @@ function renderizarTabla() {
             <td>${l.tiempoFormateado}</td><td>${l.tiempoRealFormateado}</td><td>${dif}</td>
         </tr>`;
     }).join('');
+
+    // Agregar DNF, luego DNS, luego DSQ al final
+    const orden = ['DNF', 'DNS', 'DSQ'];
+    orden.forEach(estado => {
+        const conEstado = Object.keys(estadosCorredor).filter(d => estadosCorredor[d] === estado);
+        conEstado.forEach(dorsal => {
+            const c = corredores.find(x => x.dorsal === dorsal);
+            if (!c) return;
+            html += `<tr style="opacity:0.6;">
+                <td></td><td>#${c.dorsal}</td><td>${c.nombre}</td>
+                <td>${c.equipo || '-'}</td><td>${c.categoria || '-'}</td><td>${c.evento || '-'}</td>
+                <td colspan="3" style="text-align:center;font-weight:bold;">${estado}</td>
+            </tr>`;
+        });
+    });
+
+    cuerpoTabla.innerHTML = html || '<tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>';
 }
 
 // --- Pendientes (contador real: salieron - llegaron - DNF/DSQ) ---
@@ -467,10 +484,20 @@ function exportarCSV() {
         const difCat = posCatCont[cat] === 1 ? '-' : `+${formatearTiempo(l.tiempoReal - primerRealCat[cat])}`;
         csv += `${l.posicion},${l.dorsal},"${l.nombre}","${l.equipo||''}","${l.categoria||''}","${l.evento||''}",${l.tiempoFormateado},${l.tiempoRealFormateado},${difGen},${posCatCont[cat]},${difCat}\n`;
     });
-    // DNF
+    // DNF, DNS, DSQ al final (en ese orden)
     const dorsalesLlegados = llegadas.map(l => l.dorsal);
-    corredores.filter(c => !dorsalesLlegados.includes(c.dorsal)).forEach(c => {
-        csv += `DNF,${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}",DNF,DNF,-,-,-\n`;
+    const orden = ['DNF', 'DNS', 'DSQ'];
+    orden.forEach(estado => {
+        const conEstado = Object.keys(estadosCorredor).filter(d => estadosCorredor[d] === estado);
+        conEstado.forEach(dorsal => {
+            const c = corredores.find(x => x.dorsal === dorsal);
+            if (!c) return;
+            csv += `,${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}",${estado},${estado},-,-,-\n`;
+        });
+    });
+    // Corredores sin registro (ni tiempo ni estado)
+    corredores.filter(c => !dorsalesLlegados.includes(c.dorsal) && !estadosCorredor[c.dorsal]).forEach(c => {
+        csv += `,${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}",Sin registro,Sin registro,-,-,-\n`;
     });
 
     let enc = `Carrera: ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\nTotal: ${corredores.length} | Llegaron: ${llegadas.length}\n\n`;

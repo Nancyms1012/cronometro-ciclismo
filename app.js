@@ -355,6 +355,16 @@ function registrarLlegada(dorsalParam) {
 function registrarLlegadaRapida(dorsal) { registrarLlegada(dorsal); }
 
 
+// --- Refrescar resultados (reordenar por tiempo) ---
+function refrescarResultados() {
+    // Reordenar llegadas por tiempo cronometro
+    llegadas.sort((a, b) => a.tiempo - b.tiempo);
+    // Recalcular posiciones
+    llegadas.forEach((l, i) => { l.posicion = i + 1; });
+    renderizarTabla(); renderizarPremiacion(); renderizarResultadosCategoria();
+    mostrarNotificacion(`Resultados refrescados y reordenados (${llegadas.length} llegadas)`, 'exito');
+}
+
 // --- Tabla general ---
 function renderizarTabla() {
     if (llegadas.length === 0) {

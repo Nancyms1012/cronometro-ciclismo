@@ -649,6 +649,12 @@ function descargarCSV(csv, nombreArchivo) {
     mostrarNotificacion('Archivo exportado', 'exito');
 }
 
+// --- Normalizar texto para PDF (quitar tildes) ---
+function normalizarTexto(texto) {
+    if (!texto) return '';
+    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x00-\x7F]/g, '');
+}
+
 // --- Generar PDF Clasificacion General ---
 function generarPDFGeneral() {
     try {
@@ -662,13 +668,13 @@ function generarPDFGeneral() {
     doc.setFontSize(18);
     doc.setTextColor(200, 0, 0);
     doc.setFont(undefined, 'bold');
-    doc.text(nombre.toUpperCase(), doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    doc.text(normalizarTexto(nombre.toUpperCase()), doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text('CLASIFICACION GENERAL - TOTAL', doc.internal.pageSize.getWidth() / 2, 28, { align: 'center' });
 
     // Datos de la tabla
-    const datos = llegadas.map((l, i) => [l.posicion, l.dorsal, l.nombre, l.categoria || '-', l.tiempoRealFormateado]);
+    const datos = llegadas.map((l, i) => [l.posicion, l.dorsal, normalizarTexto(l.nombre), normalizarTexto(l.categoria) || '-', l.tiempoRealFormateado]);
 
     // Agregar DNF, DNS, DSQ
     const dorsalesLlegados = llegadas.map(l => l.dorsal);
@@ -677,11 +683,11 @@ function generarPDFGeneral() {
         const conEstado = Object.keys(estadosCorredor).filter(d => estadosCorredor[d] === estado);
         conEstado.forEach(dorsal => {
             const c = corredores.find(x => x.dorsal === dorsal);
-            if (c) datos.push(['', c.dorsal, c.nombre, c.categoria || '-', estado]);
+            if (c) datos.push(['', c.dorsal, normalizarTexto(c.nombre), normalizarTexto(c.categoria) || '-', estado]);
         });
     });
     corredores.filter(c => !dorsalesLlegados.includes(c.dorsal) && !estadosCorredor[c.dorsal]).forEach(c => {
-        datos.push(['', c.dorsal, c.nombre, c.categoria || '-', 'DNS']);
+        datos.push(['', c.dorsal, normalizarTexto(c.nombre), normalizarTexto(c.categoria) || '-', 'DNS']);
     });
 
     doc.autoTable({
@@ -712,7 +718,7 @@ function generarPDFPorCategoria() {
     doc.setFontSize(18);
     doc.setTextColor(200, 0, 0);
     doc.setFont(undefined, 'bold');
-    doc.text(nombre.toUpperCase(), doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    doc.text(normalizarTexto(nombre.toUpperCase()), doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text('RESULTADOS FINALES', doc.internal.pageSize.getWidth() / 2, 28, { align: 'center' });
@@ -751,16 +757,16 @@ function generarPDFPorCategoria() {
         doc.setFontSize(11);
         doc.setTextColor(0, 0, 0);
         doc.setFont(undefined, 'bold');
-        doc.text(cat.toUpperCase(), 14, startY);
+        doc.text(normalizarTexto(cat.toUpperCase()), 14, startY);
         startY += 2;
 
         // Datos
-        const datos = grupo.map((l, i) => [i + 1, l.dorsal, l.nombre, l.tiempoRealFormateado]);
+        const datos = grupo.map((l, i) => [i + 1, l.dorsal, normalizarTexto(l.nombre), l.tiempoRealFormateado]);
 
         // Agregar DNF de esta categoria
         if (dnfPorCat[cat]) {
             dnfPorCat[cat].forEach(c => {
-                datos.push(['', c.dorsal, c.nombre, 'DNF']);
+                datos.push(['', c.dorsal, normalizarTexto(c.nombre), 'DNF']);
             });
         }
 

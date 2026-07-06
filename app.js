@@ -541,6 +541,22 @@ function exportarPendientes() {
     descargarCSV(csv, `pendientes_${nombre.replace(/\s+/g,'_')}`);
 }
 
+// --- Exportar Sin Registro (ni tiempo, ni DNS, ni DNF, ni DSQ) ---
+function exportarSinRegistro() {
+    const dorsalesLlegados = llegadas.map(l => l.dorsal);
+    const sinRegistro = corredores.filter(c => {
+        if (dorsalesLlegados.includes(c.dorsal)) return false;
+        if (estadosCorredor[c.dorsal]) return false;
+        return true;
+    });
+    if (sinRegistro.length === 0) { mostrarNotificacion('Todos los corredores tienen tiempo o estado', 'info'); return; }
+    const nombre = inputNombreCarrera.value || 'Carrera';
+    let csv = `Corredores sin registro (sin tiempo, sin DNS/DNF/DSQ) - ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\nTotal: ${sinRegistro.length}\n\n`;
+    csv += 'Dorsal,Nombre,Equipo,Categoria,Evento\n';
+    sinRegistro.forEach(c => { csv += `${c.dorsal},"${c.nombre}","${c.equipo||''}","${c.categoria||''}","${c.evento||''}"\n`; });
+    descargarCSV(csv, `sin_registro_${nombre.replace(/\s+/g,'_')}`);
+}
+
 // --- Exportar Premiacion ---
 function exportarPremiacion() {
     if (llegadas.length === 0) { mostrarNotificacion('No hay resultados', 'error'); return; }

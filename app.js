@@ -357,10 +357,16 @@ function registrarLlegadaRapida(dorsal) { registrarLlegada(dorsal); }
 
 // --- Refrescar resultados (reordenar por tiempo) ---
 function refrescarResultados() {
-    // Reordenar llegadas por tiempo cronometro
+    // Reordenar llegadas por tiempo cronometro (general)
     llegadas.sort((a, b) => a.tiempo - b.tiempo);
     // Recalcular posiciones
     llegadas.forEach((l, i) => { l.posicion = i + 1; });
+    // Recalcular tiempos reales por si cambio el desfase
+    llegadas.forEach(l => {
+        const desfase = getDesfaseCategoria(l.categoria);
+        l.tiempoReal = l.tiempo - desfase;
+        l.tiempoRealFormateado = formatearTiempo(l.tiempoReal);
+    });
     renderizarTabla(); renderizarPremiacion(); renderizarResultadosCategoria();
     mostrarNotificacion(`Resultados refrescados y reordenados (${llegadas.length} llegadas)`, 'exito');
 }
@@ -420,12 +426,12 @@ function renderizarPremiacion() {
     let hayAlgunaLista = false;
 
     Object.keys(totalPorCat).sort().forEach(cat => {
-        const grupo = llegadasPorCat[cat] || [];
+        const grupo = (llegadasPorCat[cat] || []).slice().sort((a, b) => a.tiempoReal - b.tiempoReal);
         const totalCat = totalPorCat[cat];
         const necesarios = Math.min(5, totalCat);
         const lista = grupo.length >= necesarios && necesarios > 0;
 
-        if (!lista) return; // Solo mostrar las que estan listas
+        if (!lista) return;
         hayAlgunaLista = true;
 
         const top5 = grupo.slice(0, 5);
@@ -481,7 +487,7 @@ function exportarPorCategoria() {
 
     let csv = `Resultados por Categoria - ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\n`;
     Object.keys(categorias).sort().forEach(cat => {
-        const grupo = categorias[cat];
+        const grupo = categorias[cat].slice().sort((a, b) => a.tiempoReal - b.tiempoReal);
         const primerReal = grupo[0].tiempoReal;
         csv += `\n--- ${cat} (${grupo.length} corredores) ---\n`;
         csv += 'Pos,Dorsal,Nombre,Equipo,Evento,Tiempo Real,Diferencia\n';
@@ -515,7 +521,7 @@ function exportarPorEvento(eventoFiltro) {
 
         csv += `\n========== EVENTO: ${evt} (${grupo.length} corredores) ==========\n`;
         Object.keys(catsDentro).sort().forEach(cat => {
-            const subGrupo = catsDentro[cat];
+            const subGrupo = catsDentro[cat].slice().sort((a, b) => a.tiempoReal - b.tiempoReal);
             const primerReal = subGrupo[0].tiempoReal;
             csv += `\n--- ${cat} (${subGrupo.length}) ---\n`;
             csv += 'Pos,Dorsal,Nombre,Equipo,Tiempo Real,Diferencia\n';
@@ -581,7 +587,7 @@ function exportarPremiacion() {
 
     let csv = `Premiacion Top 5 - ${nombre}\nFecha: ${new Date().toLocaleDateString('es-ES')}\n`;
     Object.keys(totalPorCat).sort().forEach(cat => {
-        const grupo = llegadasPorCat[cat] || [];
+        const grupo = (llegadasPorCat[cat] || []).slice().sort((a, b) => a.tiempoReal - b.tiempoReal);
         const totalCat = totalPorCat[cat];
         const necesarios = Math.min(5, totalCat);
         if (grupo.length < necesarios) return;

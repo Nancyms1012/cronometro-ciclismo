@@ -628,13 +628,31 @@ function procesarArchivoCSV(event) {
     if (!archivo) return;
     const ext = archivo.name.split('.').pop().toLowerCase();
     if (ext === 'xlsx' || ext === 'xls') { mostrarNotificacion('Guarda como CSV desde Excel primero', 'error'); inputArchivoCSV.value = ''; return; }
+
+    // Intentar leer como UTF-8 primero, si tiene caracteres rotos, reintentar con Latin-1
     const reader = new FileReader();
     reader.onload = function(e) {
-        const importados = parsearCSV(e.target.result);
-        if (importados.length === 0) { mostrarNotificacion('No se encontraron corredores', 'error'); inputArchivoCSV.value = ''; return; }
-        mostrarPrevisualizacion(importados); inputArchivoCSV.value = '';
+        let texto = e.target.result;
+        // Detectar si tiene caracteres rotos de UTF-8 mal interpretado
+        if (texto.includes('\ufffd') || texto.includes('Ã') || texto.includes('Ã­') || texto.includes('Ã±') || texto.includes('Ã³')) {
+            // Reintentar con ISO-8859-1 (Latin-1)
+            const reader2 = new FileReader();
+            reader2.onload = function(e2) {
+                procesarTextoCSV(e2.target.result);
+            };
+            reader2.readAsText(archivo, 'ISO-8859-1');
+        } else {
+            procesarTextoCSV(texto);
+        }
     };
     reader.readAsText(archivo, 'UTF-8');
+    inputArchivoCSV.value = '';
+}
+
+function procesarTextoCSV(texto) {
+    const importados = parsearCSV(texto);
+    if (importados.length === 0) { mostrarNotificacion('No se encontraron corredores', 'error'); return; }
+    mostrarPrevisualizacion(importados);
 }
 
 function parsearCSV(texto) {

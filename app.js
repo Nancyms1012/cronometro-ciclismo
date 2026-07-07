@@ -171,6 +171,7 @@ function renderizarTodo() {
     renderizarCorredores(); renderizarTabla(); renderizarBotonesRapidos();
     renderizarPendientes(); renderizarResultadosCategoria();
     renderizarPremiacion(); actualizarDatalists(); renderizarSalidas();
+    renderizarEstados();
 }
 
 // --- Corredores ---

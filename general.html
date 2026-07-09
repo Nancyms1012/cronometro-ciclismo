@@ -88,8 +88,12 @@
                 <div class="resultados-controles">
                     <button class="btn btn-exportar" onclick="exportarTop5CSV()">Exportar Top 5 CSV</button>
                     <button class="btn btn-exportar" onclick="generarPDFTop5()" style="background:#e74c3c;">PDF Top 5</button>
+                    <button class="btn btn-exportar" onclick="generarPDFTodo()" style="background:#8e44ad;">PDF TODO (General + Top 5)</button>
                     <select id="filtro-evento-top5" class="select-evento" onchange="renderizarTop5()">
                         <option value="todos">-- Todos los eventos --</option>
+                    </select>
+                    <select id="filtro-cat-top5" class="select-evento" onchange="renderizarTop5()">
+                        <option value="todas">-- Todas las categorias --</option>
                     </select>
                 </div>
                 <div id="top5-container"></div>

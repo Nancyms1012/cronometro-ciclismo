@@ -296,9 +296,11 @@ function renderizarTablaGeneral() {
 function renderizarTop5() {
     const container = document.getElementById('top5-container');
     const filtroEvento = document.getElementById('filtro-evento-top5').value;
+    const filtroCat = document.getElementById('filtro-cat-top5').value;
 
     let datos = [...tablaCalculada];
     if (filtroEvento !== 'todos') datos = datos.filter(c => c.evento === filtroEvento);
+    if (filtroCat !== 'todas') datos = datos.filter(c => c.categoria === filtroCat);
 
     // Agrupar por evento+categoria
     const grupos = {};
@@ -332,10 +334,12 @@ function actualizarFiltros() {
     const selEvtGen = document.getElementById('filtro-evento-general');
     const selEvtTop = document.getElementById('filtro-evento-top5');
     const selCat = document.getElementById('filtro-cat-general');
+    const selCatTop = document.getElementById('filtro-cat-top5');
 
     selEvtGen.innerHTML = '<option value="todos">-- Todos los eventos --</option>' + eventos.map(e => `<option value="${e}">${e}</option>`).join('');
     selEvtTop.innerHTML = '<option value="todos">-- Todos los eventos --</option>' + eventos.map(e => `<option value="${e}">${e}</option>`).join('');
     selCat.innerHTML = '<option value="todas">-- Todas las categorias --</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    selCatTop.innerHTML = '<option value="todas">-- Todas las categorias --</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
 
@@ -471,5 +475,105 @@ function generarPDFTop5() {
 
         doc.save(`top5_premiacion_${nombre.replace(/\s+/g,'_')}_${new Date().toISOString().split('T')[0]}.pdf`);
         mostrarNotificacion('PDF Top 5 generado', 'exito');
+    } catch(e) { alert('Error PDF: ' + e.message); }
+}
+
+
+// --- Generar PDF TODO (General completa + Top 5) ---
+function generarPDFTodo() {
+    if (tablaCalculada.length === 0) { mostrarNotificacion('Calcula primero', 'error'); return; }
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'letter');
+        const nombre = document.getElementById('nombre-serie').value || 'Serie';
+
+        // --- Parte 1: Tabla General por Evento/Categoria ---
+        const grupos = {};
+        tablaCalculada.forEach(c => {
+            const key = `${c.evento} - ${c.categoria}`;
+            if (!grupos[key]) grupos[key] = [];
+            grupos[key].push(c);
+        });
+
+        // Portada
+        doc.setFontSize(20);
+        doc.setTextColor(200, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text(normalizarTexto(nombre.toUpperCase()), doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text('TABLA GENERAL DE SERIE', doc.internal.pageSize.getWidth() / 2, 52, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text('Fecha: ' + new Date().toLocaleDateString('es-ES'), doc.internal.pageSize.getWidth() / 2, 62, { align: 'center' });
+        doc.text('Total corredores: ' + tablaCalculada.length, doc.internal.pageSize.getWidth() / 2, 70, { align: 'center' });
+
+        // Tabla general completa por categoria
+        Object.keys(grupos).sort().forEach(key => {
+            doc.addPage();
+            const grupo = grupos[key];
+
+            doc.setFontSize(12);
+            doc.setTextColor(200, 0, 0);
+            doc.setFont(undefined, 'bold');
+            doc.text(normalizarTexto(key.toUpperCase()), 14, 15);
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`${grupo.length} corredores`, 14, 21);
+
+            const datos = grupo.map(c => [
+                c.pos_c, c.dorsal, normalizarTexto(c.nombre), normalizarTexto(c.equipo || ''),
+                c.ptos[0] || '-', c.ptos[1] || '-', c.ptos[2] || '-', c.ptos[3] || '-', c.ptos[4] || '-',
+                c.veces, c.total, c.min
+            ]);
+
+            doc.autoTable({
+                startY: 25,
+                head: [['Pos', 'Dor', 'Nombre', 'Equipo', 'I', 'II', 'III', 'IV', 'V', '#V', 'Total', 'Min']],
+                body: datos,
+                styles: { fontSize: 7, cellPadding: 1.5 },
+                headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 6.5 },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                columnStyles: { 0: { halign: 'center', cellWidth: 10 }, 1: { halign: 'center', cellWidth: 12 }, 10: { fontStyle: 'bold' } }
+            });
+        });
+
+        // --- Parte 2: Top 5 por categoria ---
+        doc.addPage('portrait');
+        doc.setFontSize(16);
+        doc.setTextColor(200, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text(normalizarTexto(nombre.toUpperCase()), doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.text('PREMIACION TOP 5 POR CATEGORIA', doc.internal.pageSize.getWidth() / 2, 22, { align: 'center' });
+
+        let startY = 30;
+        Object.keys(grupos).sort().forEach(key => {
+            const top5 = grupos[key].slice(0, 5);
+            if (startY + 40 > 260) { doc.addPage(); startY = 20; }
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'bold');
+            doc.text(normalizarTexto(key.toUpperCase()), 14, startY);
+            startY += 2;
+
+            const datos = top5.map((c, i) => [i + 1, c.dorsal, normalizarTexto(c.nombre), normalizarTexto(c.equipo || ''),
+                c.ptos[0]||'-', c.ptos[1]||'-', c.ptos[2]||'-', c.ptos[3]||'-', c.ptos[4]||'-', c.veces, c.total]);
+
+            doc.autoTable({
+                startY: startY,
+                head: [['Pos', 'Dor', 'Nombre', 'Equipo', 'I', 'II', 'III', 'IV', 'V', '#V', 'Total']],
+                body: datos,
+                styles: { fontSize: 7.5, cellPadding: 1.5 },
+                headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7 },
+                columnStyles: { 0: { halign: 'center', cellWidth: 10 }, 1: { halign: 'center', cellWidth: 12 }, 10: { fontStyle: 'bold' } },
+                margin: { left: 14, right: 14 }
+            });
+            startY = doc.lastAutoTable.finalY + 8;
+        });
+
+        doc.save(`tabla_general_completa_${nombre.replace(/\s+/g,'_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+        mostrarNotificacion('PDF completo generado', 'exito');
     } catch(e) { alert('Error PDF: ' + e.message); }
 }

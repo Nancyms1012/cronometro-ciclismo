@@ -20,6 +20,20 @@ function mostrarNotificacion(msg, tipo = 'info') {
     setTimeout(() => n.remove(), 3000);
 }
 
+function borrarTodo() {
+    if (!confirm('Borrar todos los datos cargados?')) return;
+    tablaCorredores = [];
+    tablaPuntos = [];
+    resultadosFechaActual = [];
+    tablaCalculada = [];
+    document.getElementById('info-tabla').textContent = 'Sin datos cargados';
+    document.getElementById('info-puntos').textContent = 'Sin tabla de puntos';
+    document.getElementById('info-resultados').textContent = 'Sin resultados de fecha actual';
+    document.getElementById('cuerpo-tabla-general').innerHTML = '<tr><td colspan="13" class="tabla-vacia">Importa la tabla y calcula</td></tr>';
+    document.getElementById('top5-container').innerHTML = '';
+    mostrarNotificacion('Datos borrados', 'info');
+}
+
 
 // --- Parsear CSV ---
 function parsearCSVGeneral(texto) {

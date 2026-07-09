@@ -204,24 +204,25 @@ function calcularGeneral() {
     }
 
     // Calcular TOTAL, #VECES, MIN para cada corredor
+    const numFechas = parseInt(document.getElementById('num-fechas').value) || 5;
+
     tablaCalculada = tablaCorredores.map(c => {
-        const ptos = [...c.ptos];
+        // Solo tomar en cuenta las fechas configuradas
+        const ptos = c.ptos.slice(0, numFechas);
         const veces = ptos.filter(p => p > 0).length;
-        const ptosConValor = ptos.filter(p => p > 0);
 
         let totalPtos = 0;
         let minVal = 0;
 
-        if (numDescarte > 0 && ptosConValor.length > numDescarte) {
-            // Descartar las peores N fechas (solo de las que tienen puntos)
-            const ptosOrdenados = [...ptosConValor].sort((a, b) => b - a); // mayor a menor
+        if (numDescarte > 0 && ptos.length > numDescarte) {
+            // Ordenar de mayor a menor, descartar las ultimas N (las peores, incluyendo ceros)
+            const ptosOrdenados = [...ptos].sort((a, b) => b - a);
             const mejores = ptosOrdenados.slice(0, ptosOrdenados.length - numDescarte);
             totalPtos = mejores.reduce((s, p) => s + p, 0);
             const descartados = ptosOrdenados.slice(ptosOrdenados.length - numDescarte);
             minVal = descartados.reduce((s, p) => s + p, 0);
         } else {
-            // No hay suficientes fechas para descartar
-            totalPtos = ptosConValor.reduce((s, p) => s + p, 0);
+            totalPtos = ptos.reduce((s, p) => s + p, 0);
             minVal = 0;
         }
 

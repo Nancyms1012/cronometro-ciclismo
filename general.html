@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla General de Serie - Ciclismo</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="layout-container">
+        <div class="panel-izquierdo">
+            <header>
+                <h1>Tabla General de Serie</h1>
+                <p class="subtitle">Acumulado por puntos - Premiacion final</p>
+            </header>
+
+            <!-- Configuracion -->
+            <section class="seccion">
+                <h2>1. Configuracion</h2>
+                <div class="form-grupo">
+                    <label for="nombre-serie">Nombre de la serie:</label>
+                    <input type="text" id="nombre-serie" placeholder="Ej: El Reto - Endurance 2026">
+                </div>
+                <div class="form-grupo">
+                    <label for="num-fechas">Cantidad de fechas:</label>
+                    <input type="number" id="num-fechas" value="5" min="2" max="10">
+                </div>
+                <div class="form-grupo">
+                    <label for="fecha-actual">Fecha actual (la que se disputa):</label>
+                    <input type="number" id="fecha-actual" value="5" min="1" max="10">
+                </div>
+                <div class="form-grupo">
+                    <label for="fechas-descarte">Fechas a descartar:</label>
+                    <input type="number" id="fechas-descarte" value="1" min="0" max="3">
+                </div>
+            </section>
+
+            <!-- Importar tabla acumulada -->
+            <section class="seccion">
+                <h2>2. Importar Tabla Acumulada</h2>
+                <p class="instruccion">Importa el CSV/Excel con los puntos de fechas anteriores. Formato: POS_C, EVENTO, DORSAL, NOMBRE_BD, NUEVA_CATEGORIA, EQUIPO, I_PTOS, II_PTOS, III_PTOS, IV_PTOS, V_PTOS, #VECES, TOTAL, MIN</p>
+                <div class="resultados-controles">
+                    <button class="btn btn-importar" onclick="document.getElementById('archivo-tabla').click()">Importar Tabla Acumulada (CSV)</button>
+                    <input type="file" id="archivo-tabla" accept=".csv,.txt" style="display:none" onchange="importarTabla(event)">
+                </div>
+                <p class="contador" id="info-tabla">Sin datos cargados</p>
+            </section>
+
+            <!-- Importar tabla de puntos -->
+            <section class="seccion">
+                <h2>3. Tabla de Puntos por Posicion</h2>
+                <p class="instruccion">Importa el CSV con la tabla: Posicion, Puntos. El sistema asignara puntos segun la posicion en cada categoria.</p>
+                <div class="resultados-controles">
+                    <button class="btn btn-importar" onclick="document.getElementById('archivo-puntos').click()">Importar Tabla de Puntos (CSV)</button>
+                    <input type="file" id="archivo-puntos" accept=".csv,.txt" style="display:none" onchange="importarPuntos(event)">
+                    <button class="btn btn-plantilla" onclick="cargarPuntosDefault()">Usar puntos 100-1</button>
+                </div>
+                <p class="contador" id="info-puntos">Sin tabla de puntos</p>
+            </section>
+
+            <!-- Importar resultados fecha actual -->
+            <section class="seccion">
+                <h2>4. Resultados Fecha Actual</h2>
+                <p class="instruccion">Importa los resultados de la fecha actual (CSV con POS, DORSAL, CATEGORIA, EVENTO, ESTADO). Los puntos se asignaran automaticamente segun la posicion por categoria.</p>
+                <div class="resultados-controles">
+                    <button class="btn btn-importar" onclick="document.getElementById('archivo-resultados').click()">Importar Resultados Fecha Actual</button>
+                    <input type="file" id="archivo-resultados" accept=".csv,.txt" style="display:none" onchange="importarResultados(event)">
+                </div>
+                <p class="contador" id="info-resultados">Sin resultados de fecha actual</p>
+            </section>
+
+            <!-- Calcular -->
+            <section class="seccion">
+                <h2>5. Calcular y Ordenar</h2>
+                <button class="btn btn-iniciar" onclick="calcularGeneral()" style="width:100%;">CALCULAR TABLA GENERAL</button>
+            </section>
+        </div>
+
+        <div class="panel-derecho">
+            <!-- Top 5 Premiacion -->
+            <section class="seccion">
+                <h2>6. Top 5 - Premiacion Final</h2>
+                <div class="resultados-controles">
+                    <button class="btn btn-exportar" onclick="exportarTop5CSV()">Exportar Top 5 CSV</button>
+                    <button class="btn btn-exportar" onclick="generarPDFTop5()" style="background:#e74c3c;">PDF Top 5</button>
+                    <select id="filtro-evento-top5" class="select-evento" onchange="renderizarTop5()">
+                        <option value="todos">-- Todos los eventos --</option>
+                    </select>
+                </div>
+                <div id="top5-container"></div>
+            </section>
+
+            <!-- Tabla General Completa -->
+            <section class="seccion">
+                <h2>7. Tabla General Completa</h2>
+                <div class="resultados-controles">
+                    <button class="btn btn-exportar" onclick="exportarGeneralCSV()">Exportar General CSV</button>
+                    <button class="btn btn-exportar" onclick="generarPDFGeneral()" style="background:#e74c3c;">PDF General</button>
+                    <select id="filtro-evento-general" class="select-evento" onchange="renderizarTablaGeneral()">
+                        <option value="todos">-- Todos los eventos --</option>
+                    </select>
+                    <select id="filtro-cat-general" class="select-evento" onchange="renderizarTablaGeneral()">
+                        <option value="todas">-- Todas las categorias --</option>
+                    </select>
+                </div>
+                <div class="tabla-scroll-container" style="max-height:500px;">
+                    <table id="tabla-general">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Dorsal</th>
+                                <th>Nombre</th>
+                                <th>Categoria</th>
+                                <th>Equipo</th>
+                                <th>I</th>
+                                <th>II</th>
+                                <th>III</th>
+                                <th>IV</th>
+                                <th>V</th>
+                                <th>#Veces</th>
+                                <th>Total</th>
+                                <th>Min</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla-general">
+                            <tr><td colspan="13" class="tabla-vacia">Importa la tabla y calcula</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="general.js"></script>
+</body>
+</html>

@@ -207,25 +207,23 @@ function calcularGeneral() {
     tablaCalculada = tablaCorredores.map(c => {
         const ptos = [...c.ptos];
         const veces = ptos.filter(p => p > 0).length;
+        const ptosConValor = ptos.filter(p => p > 0);
 
-        // Ordenar puntos para encontrar los que se descartan
-        const ptosOrdenados = [...ptos].sort((a, b) => a - b);
-        let descartados = [];
         let totalPtos = 0;
+        let minVal = 0;
 
-        if (numDescarte > 0 && veces > numDescarte) {
-            // Solo descartar si tiene mas fechas que las de descarte
-            // Los menores se descartan (incluyendo ceros si participó en más)
-            const ptosParaSuma = [...ptos].sort((a, b) => b - a); // de mayor a menor
-            const mejores = ptosParaSuma.slice(0, ptosParaSuma.length - numDescarte);
+        if (numDescarte > 0 && ptosConValor.length > numDescarte) {
+            // Descartar las peores N fechas (solo de las que tienen puntos)
+            const ptosOrdenados = [...ptosConValor].sort((a, b) => b - a); // mayor a menor
+            const mejores = ptosOrdenados.slice(0, ptosOrdenados.length - numDescarte);
             totalPtos = mejores.reduce((s, p) => s + p, 0);
-            // MIN = suma de los descartados
-            descartados = ptosParaSuma.slice(ptosParaSuma.length - numDescarte);
+            const descartados = ptosOrdenados.slice(ptosOrdenados.length - numDescarte);
+            minVal = descartados.reduce((s, p) => s + p, 0);
         } else {
-            totalPtos = ptos.reduce((s, p) => s + p, 0);
+            // No hay suficientes fechas para descartar
+            totalPtos = ptosConValor.reduce((s, p) => s + p, 0);
+            minVal = 0;
         }
-
-        const minVal = descartados.length > 0 ? descartados.reduce((s, p) => s + p, 0) : 0;
 
         return {
             ...c,
@@ -316,9 +314,9 @@ function renderizarTop5() {
         const grupo = grupos[key].slice(0, 5);
         html += `<div class="premiacion-card"><h3>${key}</h3>
             <div class="tabla-container"><table>
-            <thead><tr><th>Pos</th><th>Dorsal</th><th>Nombre</th><th>Equipo</th><th>#V</th><th>Total</th></tr></thead><tbody>`;
+            <thead><tr><th>Pos</th><th>Dorsal</th><th>Nombre</th><th>Equipo</th><th>I</th><th>II</th><th>III</th><th>IV</th><th>V</th><th>#V</th><th>Total</th></tr></thead><tbody>`;
         grupo.forEach((c, i) => {
-            html += `<tr><td>${i+1}</td><td>${c.dorsal}</td><td>${c.nombre}</td><td>${c.equipo||'-'}</td><td>${c.veces}</td><td><strong>${c.total}</strong></td></tr>`;
+            html += `<tr><td>${i+1}</td><td>${c.dorsal}</td><td>${c.nombre}</td><td>${c.equipo||'-'}</td><td>${c.ptos[0]||'-'}</td><td>${c.ptos[1]||'-'}</td><td>${c.ptos[2]||'-'}</td><td>${c.ptos[3]||'-'}</td><td>${c.ptos[4]||'-'}</td><td>${c.veces}</td><td><strong>${c.total}</strong></td></tr>`;
         });
         html += '</tbody></table></div></div>';
     });

@@ -342,6 +342,17 @@ function actualizarFiltros() {
     selCatTop.innerHTML = '<option value="todas">-- Todas las categorias --</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
+function actualizarCategoriasPorEvento(selectEvento, selectCategoria) {
+    const eventoSeleccionado = selectEvento.value;
+    let cats;
+    if (eventoSeleccionado === 'todos') {
+        cats = [...new Set(tablaCorredores.map(c => c.categoria).filter(c => c))];
+    } else {
+        cats = [...new Set(tablaCorredores.filter(c => c.evento === eventoSeleccionado).map(c => c.categoria).filter(c => c))];
+    }
+    selectCategoria.innerHTML = '<option value="todas">-- Todas las categorias --</option>' + cats.sort().map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
 
 // --- Exportar CSV General ---
 function exportarGeneralCSV() {

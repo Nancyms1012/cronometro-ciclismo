@@ -89,7 +89,7 @@
                     <button class="btn btn-exportar" onclick="exportarTop5CSV()">Exportar Top 5 CSV</button>
                     <button class="btn btn-exportar" onclick="generarPDFTop5()" style="background:#e74c3c;">PDF Top 5</button>
                     <button class="btn btn-exportar" onclick="generarPDFTodo()" style="background:#8e44ad;">PDF TODO (General + Top 5)</button>
-                    <select id="filtro-evento-top5" class="select-evento" onchange="renderizarTop5()">
+                    <select id="filtro-evento-top5" class="select-evento" onchange="actualizarCategoriasPorEvento(this, document.getElementById('filtro-cat-top5')); renderizarTop5()">
                         <option value="todos">-- Todos los eventos --</option>
                     </select>
                     <select id="filtro-cat-top5" class="select-evento" onchange="renderizarTop5()">
@@ -105,7 +105,7 @@
                 <div class="resultados-controles">
                     <button class="btn btn-exportar" onclick="exportarGeneralCSV()">Exportar General CSV</button>
                     <button class="btn btn-exportar" onclick="generarPDFGeneral()" style="background:#e74c3c;">PDF General</button>
-                    <select id="filtro-evento-general" class="select-evento" onchange="renderizarTablaGeneral()">
+                    <select id="filtro-evento-general" class="select-evento" onchange="actualizarCategoriasPorEvento(this, document.getElementById('filtro-cat-general')); renderizarTablaGeneral()">
                         <option value="todos">-- Todos los eventos --</option>
                     </select>
                     <select id="filtro-cat-general" class="select-evento" onchange="renderizarTablaGeneral()">

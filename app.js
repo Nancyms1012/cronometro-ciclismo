@@ -24,6 +24,7 @@ const inputNombreCorredor = document.getElementById('nombre-corredor');
 const inputEquipo = document.getElementById('equipo');
 const inputCategoriaCorredor = document.getElementById('categoria-corredor');
 const inputEventoCorredor = document.getElementById('evento-corredor');
+const inputLicenciaCorredor = document.getElementById('licencia-corredor');
 const btnAgregarCorredor = document.getElementById('btn-agregar-corredor');
 const totalCorredores = document.getElementById('total-corredores');
 const tiempoDisplay = document.getElementById('tiempo-display');
@@ -181,9 +182,10 @@ function agregarCorredor() {
     const equipo = inputEquipo.value.trim();
     const categoria = inputCategoriaCorredor.value.trim();
     const evento = inputEventoCorredor.value.trim();
+    const licencia = inputLicenciaCorredor.value;
     if (!dorsal || !nombre) { mostrarNotificacion('Dorsal y nombre son obligatorios', 'error'); return; }
     if (corredores.find(c => c.dorsal === dorsal)) { mostrarNotificacion(`Dorsal #${dorsal} ya existe`, 'error'); return; }
-    corredores.push({ dorsal, nombre, equipo, categoria, evento });
+    corredores.push({ dorsal, nombre, equipo, categoria, evento, licencia });
     renderizarCorredores(); renderizarBotonesRapidos(); renderizarPendientes();
     actualizarDatalists(); renderizarSalidas();
     inputDorsal.value = ''; inputNombreCorredor.value = ''; inputEquipo.value = '';
@@ -213,11 +215,14 @@ function editarCorredor(dorsal) {
     if (nuevaCategoria === null) return;
     const nuevoEvento = prompt('Evento:', corredor.evento);
     if (nuevoEvento === null) return;
+    const nuevaLicencia = prompt('Licencia Federacion (Si/No):', corredor.licencia || 'No');
+    if (nuevaLicencia === null) return;
 
     corredor.nombre = nuevoNombre || corredor.nombre;
     corredor.equipo = nuevoEquipo;
     corredor.categoria = nuevaCategoria;
     corredor.evento = nuevoEvento;
+    corredor.licencia = (nuevaLicencia.toLowerCase() === 'si' || nuevaLicencia.toLowerCase() === 'sí') ? 'Si' : 'No';
 
     // Actualizar tambien en llegadas si ya cruzo la meta
     const llegada = llegadas.find(l => l.dorsal === dorsal);
@@ -226,6 +231,7 @@ function editarCorredor(dorsal) {
         llegada.equipo = corredor.equipo;
         llegada.categoria = corredor.categoria;
         llegada.evento = corredor.evento;
+        llegada.licencia = corredor.licencia;
     }
 
     renderizarCorredores(); renderizarTabla(); actualizarDatalists();
@@ -270,9 +276,9 @@ function buscarYBorrarCorredor() {
 function exportarBaseDatos() {
     if (corredores.length === 0) { mostrarNotificacion('No hay corredores registrados', 'error'); return; }
     const nombre = inputNombreCarrera.value || 'Carrera';
-    let csv = 'Dorsal,Nombre,Equipo,Categoria,Evento\n';
+    let csv = 'Dorsal,Nombre,Equipo,Categoria,Evento,Licencia\n';
     corredores.forEach(c => {
-        csv += `${c.dorsal},"${c.nombre}","${c.equipo || ''}","${c.categoria || ''}","${c.evento || ''}"\n`;
+        csv += `${c.dorsal},"${c.nombre}","${c.equipo || ''}","${c.categoria || ''}","${c.evento || ''}","${c.licencia || 'No'}"\n`;
     });
     descargarCSV(csv, `base_datos_corredores_${nombre.replace(/\s+/g, '_')}`);
 }
@@ -340,7 +346,7 @@ function registrarLlegada(dorsalParam) {
         posicion: llegadas.length + 1,
         dorsal: corredor.dorsal, nombre: corredor.nombre,
         equipo: corredor.equipo, categoria: corredor.categoria,
-        evento: corredor.evento,
+        evento: corredor.evento, licencia: corredor.licencia || 'No',
         tiempo: tiempoCrono, tiempoReal: tiempoReal,
         tiempoFormateado: formatearTiempo(tiempoCrono),
         tiempoRealFormateado: formatearTiempo(tiempoReal)
@@ -375,7 +381,7 @@ function refrescarResultados() {
 // --- Tabla general ---
 function renderizarTabla() {
     if (llegadas.length === 0 && Object.keys(estadosCorredor).length === 0) {
-        cuerpoTabla.innerHTML = '<tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>';
+        cuerpoTabla.innerHTML = '<tr><td colspan="10" class="tabla-vacia">No hay llegadas registradas</td></tr>';
         return;
     }
     const primerTiempo = llegadas.length > 0 ? llegadas[0].tiempo : 0;
@@ -384,6 +390,7 @@ function renderizarTabla() {
         return `<tr>
             <td>${l.posicion}</td><td>#${l.dorsal}</td><td>${l.nombre}</td>
             <td>${l.equipo || '-'}</td><td>${l.categoria || '-'}</td><td>${l.evento || '-'}</td>
+            <td>${l.licencia || 'No'}</td>
             <td>${l.tiempoFormateado}</td><td>${l.tiempoRealFormateado}</td><td>${dif}</td>
         </tr>`;
     }).join('');
@@ -398,6 +405,7 @@ function renderizarTabla() {
             html += `<tr style="opacity:0.6;">
                 <td></td><td>#${c.dorsal}</td><td>${c.nombre}</td>
                 <td>${c.equipo || '-'}</td><td>${c.categoria || '-'}</td><td>${c.evento || '-'}</td>
+                <td>${c.licencia || 'No'}</td>
                 <td colspan="3" style="text-align:center;font-weight:bold;">${estado}</td>
             </tr>`;
         });
@@ -408,11 +416,12 @@ function renderizarTabla() {
         html += `<tr style="opacity:0.6;">
             <td></td><td>#${c.dorsal}</td><td>${c.nombre}</td>
             <td>${c.equipo || '-'}</td><td>${c.categoria || '-'}</td><td>${c.evento || '-'}</td>
+            <td>${c.licencia || 'No'}</td>
             <td colspan="3" style="text-align:center;font-weight:bold;">DNS</td>
         </tr>`;
     });
 
-    cuerpoTabla.innerHTML = html || '<tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>';
+    cuerpoTabla.innerHTML = html || '<tr><td colspan="10" class="tabla-vacia">No hay llegadas registradas</td></tr>';
 }
 
 // --- Pendientes (contador real: salieron - llegaron - DNF/DSQ) ---
@@ -844,26 +853,29 @@ function parsearCSV(texto) {
     const iE = enc.findIndex(h => h.includes('equipo') || h.includes('team') || h.includes('club'));
     const iC = enc.findIndex(h => h.includes('categoria') || h.includes('category') || h.includes('cat'));
     const iEv = enc.findIndex(h => h.includes('evento') || h.includes('event') || h.includes('modalidad'));
+    const iLic = enc.findIndex(h => h.includes('licencia') || h.includes('lic') || h.includes('federacion'));
 
     const resultados = [];
     const inicio = (iD !== -1 && iN !== -1) ? 1 : 0;
     for (let i = inicio; i < lineas.length; i++) {
         const cols = parsearLineaCSV(lineas[i], sep);
         if (cols.length < 2) continue;
-        let dorsal, nombre, equipo, categoria, evento;
+        let dorsal, nombre, equipo, categoria, evento, licencia;
         if (iD !== -1 && iN !== -1) {
             dorsal = (cols[iD] || '').trim(); nombre = (cols[iN] || '').trim();
             equipo = iE !== -1 ? (cols[iE] || '').trim() : '';
             categoria = iC !== -1 ? (cols[iC] || '').trim() : '';
             evento = iEv !== -1 ? (cols[iEv] || '').trim() : '';
+            licencia = iLic !== -1 ? (cols[iLic] || '').trim() : '';
         } else {
             dorsal = cols[0].trim(); nombre = cols[1].trim();
             equipo = cols[2] ? cols[2].trim() : '';
             categoria = cols[3] ? cols[3].trim() : '';
             evento = cols[4] ? cols[4].trim() : '';
+            licencia = cols[5] ? cols[5].trim() : '';
         }
         if (!dorsal || !nombre || isNaN(dorsal)) continue;
-        resultados.push({ dorsal, nombre, equipo, categoria, evento });
+        resultados.push({ dorsal, nombre, equipo, categoria, evento, licencia });
     }
     return resultados;
 }
@@ -906,7 +918,7 @@ function confirmarImportacion(modo) {
     let ok = 0, dup = 0;
     nuevos.forEach(c => {
         if (corredores.find(x => x.dorsal === c.dorsal)) { dup++; }
-        else { corredores.push({ dorsal: c.dorsal, nombre: c.nombre, equipo: c.equipo, categoria: c.categoria, evento: c.evento }); ok++; }
+        else { corredores.push({ dorsal: c.dorsal, nombre: c.nombre, equipo: c.equipo, categoria: c.categoria, evento: c.evento, licencia: c.licencia || '' }); ok++; }
     });
     const evtsDetectados = [...new Set(nuevos.map(c => c.evento).filter(e => e))];
     if (evtsDetectados.length && !inputEventos.value) inputEventos.value = evtsDetectados.join(', ');

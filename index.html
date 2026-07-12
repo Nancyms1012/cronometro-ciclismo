@@ -61,6 +61,13 @@
                         <input type="text" id="evento-corredor" placeholder="Ej: Reto" list="lista-eventos">
                         <datalist id="lista-eventos"></datalist>
                     </div>
+                    <div class="form-grupo">
+                        <label for="licencia-corredor">Licencia Fed.:</label>
+                        <select id="licencia-corredor">
+                            <option value="No">No</option>
+                            <option value="Si">Si</option>
+                        </select>
+                    </div>
                     <button id="btn-agregar-corredor" class="btn btn-agregar">+ Agregar</button>
                 </div>
                 <div class="importar-seccion">
@@ -203,13 +210,14 @@
                                 <th>Equipo</th>
                                 <th>Categoria</th>
                                 <th>Evento</th>
+                                <th>Lic.</th>
                                 <th>T. Crono</th>
                                 <th>T. Real</th>
                                 <th>Dif.</th>
                             </tr>
                         </thead>
                         <tbody id="cuerpo-tabla">
-                            <tr><td colspan="9" class="tabla-vacia">No hay llegadas registradas</td></tr>
+                            <tr><td colspan="10" class="tabla-vacia">No hay llegadas registradas</td></tr>
                         </tbody>
                     </table>
                 </div>

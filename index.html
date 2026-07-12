@@ -101,6 +101,12 @@
                 <p class="instruccion">Selecciona las categorias que van a salir y presiona "Marcar salida AHORA" para registrar la hora exacta de salida.</p>
                 <div class="form-inline" style="margin-bottom:15px;">
                     <div class="form-grupo">
+                        <label for="select-evento-salida">Evento:</label>
+                        <select id="select-evento-salida" onchange="filtrarCategoriasSalida()">
+                            <option value="todos">-- Todos --</option>
+                        </select>
+                    </div>
+                    <div class="form-grupo">
                         <label for="select-cat-salida">Categorias a dar salida:</label>
                         <select id="select-cat-salida" multiple size="4" style="height:auto;">
                         </select>

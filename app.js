@@ -89,12 +89,16 @@ function actualizarDatalists() {
     selectEventoExportarCat.value = evtActual2 || 'todos';
 }
 
-function getDesfaseCategoria(categoria) {
-    return (salidasDesfase[categoria] || 0) * 60000; // convertir min a ms
+function getDesfaseCategoria(categoria, evento) {
+    // Buscar por evento|categoria primero, luego solo por categoria
+    const key = `${evento || ''}|${categoria || ''}`;
+    if (salidasDesfase[key] !== undefined) return salidasDesfase[key] * 60000;
+    if (salidasDesfase[categoria] !== undefined) return salidasDesfase[categoria] * 60000;
+    return 0;
 }
 
 function getTiempoReal(llegada) {
-    const desfase = getDesfaseCategoria(llegada.categoria);
+    const desfase = getDesfaseCategoria(llegada.categoria, llegada.evento);
     return llegada.tiempo - desfase;
 }
 
@@ -102,29 +106,47 @@ function getTiempoReal(llegada) {
 // --- Salidas escalonadas ---
 function renderizarSalidas() {
     const container = document.getElementById('salidas-container');
-    const cats = obtenerCategorias();
-    const selectSalida = document.getElementById('select-cat-salida');
+    const selectEvento = document.getElementById('select-evento-salida');
 
-    // Actualizar select multiple
-    if (selectSalida) {
-        selectSalida.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-    }
+    // Actualizar select de eventos
+    const evts = obtenerEventos();
+    selectEvento.innerHTML = '<option value="todos">-- Todos --</option>' + evts.map(e => `<option value="${e}">${e}</option>`).join('');
+
+    // Llenar categorias
+    filtrarCategoriasSalida();
 
     // Mostrar salidas ya registradas
     const registradas = Object.keys(salidasDesfase).filter(cat => salidasDesfase[cat] > 0);
     if (registradas.length === 0) {
-        container.innerHTML = '<p class="placeholder-text">No hay salidas registradas. Selecciona categorias y presiona "Marcar salida AHORA".</p>';
+        container.innerHTML = '<p class="placeholder-text">No hay salidas registradas.</p>';
         return;
     }
-    container.innerHTML = registradas.map(cat => {
-        const minutos = salidasDesfase[cat];
-        const h = Math.floor(minutos / 60);
-        const m = minutos % 60;
+    container.innerHTML = registradas.map(key => {
+        const minutos = salidasDesfase[key];
+        const label = key.includes('|') ? key.split('|').reverse().join(' (') + ')' : key;
         return `<div class="salida-item">
-            <span class="cat-nombre">${cat}</span>
+            <span class="cat-nombre">${label}</span>
             <span class="hora-salida">+${minutos} min</span>
-            <span class="desfase-info">(desfase desde inicio del crono)</span>
+            <span class="desfase-info">(desfase desde inicio)</span>
         </div>`;
+    }).join('');
+}
+
+function filtrarCategoriasSalida() {
+    const selectEvento = document.getElementById('select-evento-salida');
+    const selectSalida = document.getElementById('select-cat-salida');
+    const eventoSel = selectEvento.value;
+
+    let corredoresFiltrados = corredores;
+    if (eventoSel !== 'todos') {
+        corredoresFiltrados = corredores.filter(c => c.evento === eventoSel);
+    }
+
+    const combinaciones = [...new Set(corredoresFiltrados.map(c => `${c.evento || ''}|${c.categoria || ''}`).filter(x => x !== '|'))];
+    selectSalida.innerHTML = combinaciones.sort().map(combo => {
+        const [evt, cat] = combo.split('|');
+        const label = evt ? `${cat} (${evt})` : cat;
+        return `<option value="${combo}">${label}</option>`;
     }).join('');
 }
 
@@ -140,11 +162,12 @@ function marcarSalidaAhora() {
         return;
     }
     const minutosDesdeInicio = Math.round((Date.now() - tiempoInicio) / 60000);
-    seleccionadas.forEach(cat => {
-        salidasDesfase[cat] = minutosDesdeInicio;
+    seleccionadas.forEach(combo => {
+        salidasDesfase[combo] = minutosDesdeInicio;
     });
     renderizarSalidas();
-    mostrarNotificacion(`Salida registrada para: ${seleccionadas.join(', ')} (+${minutosDesdeInicio} min)`, 'exito');
+    const nombres = seleccionadas.map(s => { const [e,c] = s.split('|'); return `${c} (${e})`; }).join(', ');
+    mostrarNotificacion(`Salida: ${nombres} (+${minutosDesdeInicio} min)`, 'exito');
 }
 
 function actualizarDesfase(cat, valor) {
@@ -339,7 +362,7 @@ function registrarLlegada(dorsalParam) {
     if (llegadas.find(l => l.dorsal === dorsal)) { mostrarNotificacion(`#${dorsal} ya cruzo la meta`, 'error'); return; }
 
     const tiempoCrono = Date.now() - tiempoInicio;
-    const desfase = getDesfaseCategoria(corredor.categoria);
+    const desfase = getDesfaseCategoria(corredor.categoria, corredor.evento);
     const tiempoReal = tiempoCrono - desfase;
 
     llegadas.push({
@@ -370,7 +393,7 @@ function refrescarResultados() {
     llegadas.forEach((l, i) => { l.posicion = i + 1; });
     // Recalcular tiempos reales por si cambio el desfase
     llegadas.forEach(l => {
-        const desfase = getDesfaseCategoria(l.categoria);
+        const desfase = getDesfaseCategoria(l.categoria, l.evento);
         l.tiempoReal = l.tiempo - desfase;
         l.tiempoRealFormateado = formatearTiempo(l.tiempoReal);
     });
@@ -957,7 +980,7 @@ function modificarTiempo() {
 
     llegada.tiempo = nuevoMs;
     llegada.tiempoFormateado = formatearTiempo(nuevoMs);
-    const desfase = getDesfaseCategoria(llegada.categoria);
+    const desfase = getDesfaseCategoria(llegada.categoria, llegada.evento);
     llegada.tiempoReal = nuevoMs - desfase;
     llegada.tiempoRealFormateado = formatearTiempo(llegada.tiempoReal);
 

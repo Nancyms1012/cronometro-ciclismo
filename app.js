@@ -894,13 +894,13 @@ function parsearLineaCSV(linea, sep) {
 function mostrarPrevisualizacion(importados) {
     const cats = [...new Set(importados.map(c => c.categoria).filter(c => c))];
     const evts = [...new Set(importados.map(c => c.evento).filter(e => e))];
-    let tabla = importados.map(c => `<tr><td>${c.dorsal}</td><td>${c.nombre}</td><td>${c.equipo||'-'}</td><td>${c.categoria||'-'}</td><td>${c.evento||'-'}</td></tr>`).join('');
+    let tabla = importados.map(c => `<tr><td>${c.dorsal}</td><td>${c.nombre}</td><td>${c.equipo||'-'}</td><td>${c.categoria||'-'}</td><td>${c.evento||'-'}</td><td>${c.licencia||'-'}</td></tr>`).join('');
     let info = ''; if (cats.length) info += `Categorias: <span>${cats.join(', ')}</span><br>`; if (evts.length) info += `Eventos: <span>${evts.join(', ')}</span>`;
     const tiene = corredores.length > 0;
     const modal = document.createElement('div'); modal.className = 'modal-overlay'; modal.id = 'modal-importar';
     modal.innerHTML = `<div class="modal-content"><h3>Vista previa</h3>
         <p class="modal-info"><span>${importados.length}</span> corredores encontrados. ${info}</p>
-        <table class="modal-tabla"><thead><tr><th>Dorsal</th><th>Nombre</th><th>Equipo</th><th>Cat.</th><th>Evento</th></tr></thead><tbody>${tabla}</tbody></table>
+        <table class="modal-tabla"><thead><tr><th>Dorsal</th><th>Nombre</th><th>Equipo</th><th>Cat.</th><th>Evento</th><th>Lic.</th></tr></thead><tbody>${tabla}</tbody></table>
         <div class="modal-botones">
             <button class="btn btn-cancelar-import" onclick="cerrarModal()">Cancelar</button>
             ${tiene ? `<button class="btn btn-reemplazar-import" onclick="confirmarImportacion('reemplazar')">REEMPLAZAR</button>` : ''}

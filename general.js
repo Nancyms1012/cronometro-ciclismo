@@ -145,14 +145,16 @@ function importarResultados(event) {
         const datos = parsearCSVGeneral(texto);
         if (datos.length === 0) { mostrarNotificacion('No se encontraron resultados', 'error'); return; }
         resultadosFechaActual = datos.map(d => ({
-            pos: d.POS || d.pos || d.POSICION || '',
-            dorsal: d.DORSAL || d.dorsal || d.NUMERO || '',
+            pos: d.POS || d.pos || d.POSICION || d.posicion || d.POS_C || d.pos_c || '',
+            dorsal: d.DORSAL || d.dorsal || d.NUMERO || d.numero || '',
             categoria: d.NUEVA_CATEGORIA || d.nueva_categoria || d.CATEGORIA || d.categoria || '',
             evento: d.EVENTO || d.evento || '',
             estado: d.ESTADO || d.estado || ''
         }));
         document.getElementById('info-resultados').textContent = `${resultadosFechaActual.length} resultados cargados`;
-        mostrarNotificacion(`Resultados fecha actual: ${resultadosFechaActual.length}`, 'exito');
+        // Mostrar muestra de lo que se leyo
+        const muestra = resultadosFechaActual.slice(0, 3).map(r => `#${r.dorsal} pos:${r.pos}`).join(', ');
+        mostrarNotificacion(`${resultadosFechaActual.length} resultados. Muestra: ${muestra}`, 'exito');
     });
     event.target.value = '';
 }
@@ -180,27 +182,29 @@ function calcularGeneral() {
 
     // Asignar puntos de la fecha actual si hay resultados importados
     if (resultadosFechaActual.length > 0 && tablaPuntos.length > 0) {
-        // Agrupar resultados por categoria+evento para asignar posicion
-        const grupos = {};
-        resultadosFechaActual.forEach(r => {
-            const key = `${r.evento}|${r.categoria}`;
-            if (!grupos[key]) grupos[key] = [];
-            grupos[key].push(r);
-        });
+        let asignados = 0;
+        let noEncontrados = 0;
 
         // Asignar puntos a cada corredor en la tabla
         resultadosFechaActual.forEach(r => {
-            const corredor = tablaCorredores.find(c => c.dorsal.toString() === r.dorsal.toString());
+            const corredor = tablaCorredores.find(c => c.dorsal.toString().trim() === r.dorsal.toString().trim());
             if (corredor && fechaActualIdx >= 0 && fechaActualIdx < 5) {
-                const estado = r.estado ? r.estado.toUpperCase() : '';
+                const estado = r.estado ? r.estado.toUpperCase().trim() : '';
                 if (estado === 'DNF' || estado === 'DNS' || estado === 'DSQ') {
                     corredor.ptos[fechaActualIdx] = 0;
+                    asignados++;
                 } else {
                     const pos = parseInt(r.pos);
-                    corredor.ptos[fechaActualIdx] = obtenerPuntosPorPosicion(pos);
+                    if (pos > 0) {
+                        corredor.ptos[fechaActualIdx] = obtenerPuntosPorPosicion(pos);
+                        asignados++;
+                    }
                 }
+            } else {
+                noEncontrados++;
             }
         });
+        mostrarNotificacion(`Puntos asignados a ${asignados} corredores (${noEncontrados} no encontrados en tabla)`, 'info');
     }
 
     // Calcular TOTAL, #VECES, MIN para cada corredor

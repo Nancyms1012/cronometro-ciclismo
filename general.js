@@ -144,17 +144,35 @@ function importarResultados(event) {
     leerArchivo(file, function(texto) {
         const datos = parsearCSVGeneral(texto);
         if (datos.length === 0) { mostrarNotificacion('No se encontraron resultados', 'error'); return; }
-        resultadosFechaActual = datos.map(d => ({
-            pos: d.POS || d.pos || d.POSICION || d.posicion || d.POS_C || d.pos_c || '',
-            dorsal: d.DORSAL || d.dorsal || d.NUMERO || d.numero || '',
-            categoria: d.NUEVA_CATEGORIA || d.nueva_categoria || d.CATEGORIA || d.categoria || '',
+
+        // Detectar columnas flexiblemente
+        const resultados = datos.map(d => ({
+            dorsal: (d.PLACA || d.placa || d.DORSAL || d.dorsal || d.NUMERO || d.numero || '').toString().trim(),
+            nombre: d.NOMBRE || d.nombre || d.NOMBRE_BD || '',
+            categoria: d.CATEGORIA || d.categoria || d.NUEVA_CATEGORIA || d.nueva_categoria || '',
+            equipo: d.EQUIPO || d.equipo || '',
             evento: d.EVENTO || d.evento || '',
-            estado: d.ESTADO || d.estado || ''
+            tiempo: d.TIEMPO || d.tiempo || '',
+            estado: d.ESTADO || d.estado || '',
+            pos: d.POS || d.pos || d.POSICION || d.posicion || d.POS_C || d.pos_c || ''
         }));
+
+        // Si no tiene columna POS, calcular posicion por categoria (orden del archivo)
+        const tienePos = resultados.some(r => r.pos && parseInt(r.pos) > 0);
+        if (!tienePos) {
+            const contadorPorCat = {};
+            resultados.forEach(r => {
+                const cat = r.categoria || 'Sin categoria';
+                if (!contadorPorCat[cat]) contadorPorCat[cat] = 0;
+                contadorPorCat[cat]++;
+                r.pos = contadorPorCat[cat].toString();
+            });
+        }
+
+        resultadosFechaActual = resultados;
         document.getElementById('info-resultados').textContent = `${resultadosFechaActual.length} resultados cargados`;
-        // Mostrar muestra de lo que se leyo
-        const muestra = resultadosFechaActual.slice(0, 3).map(r => `#${r.dorsal} pos:${r.pos}`).join(', ');
-        mostrarNotificacion(`${resultadosFechaActual.length} resultados. Muestra: ${muestra}`, 'exito');
+        const muestra = resultadosFechaActual.slice(0, 3).map(r => `#${r.dorsal} pos:${r.pos} cat:${r.categoria}`).join(' | ');
+        mostrarNotificacion(`${resultadosFechaActual.length} resultados. ${muestra}`, 'exito');
     });
     event.target.value = '';
 }
